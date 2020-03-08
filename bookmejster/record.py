@@ -5,13 +5,13 @@ from datetime import datetime
 def cast_values(values):
     try:
         values['Price'] = float(values['Price'])
-    except KeyError:
+    except (KeyError, ValueError):
         pass
 
     for field in ('ISBN', 'Release', 'Pages', 'Quantity', 'Discount'):
         try:
             values[field] = int(values[field])
-        except KeyError:
+        except (KeyError, ValueError):
             pass
 
 
@@ -56,18 +56,6 @@ class Validator:
         self.check_isbn(data['ISBN'])
         self.check_release(data['Release'])
 
-    def check_field(self, name, value):
-        if name == 'ISBN':
-            self.check_isbn(value)
-        elif name == 'Release':
-            self.check_release(value)
-        elif name in self.numeric_fields:
-            self.check_number(value, name)
-        for record in VALUES:
-            if record.name == name:
-                self.check_length(record, value)
-                break
-
     def check_release(self, year):
         min = 1800
         max = datetime.now().year + 1
@@ -97,12 +85,12 @@ class Validator:
     def check_length(self, record, value):
         is_correct = record.is_length_correct(value)
         if not is_correct:
-            text = self.get_lenght_error(record.range_min, record.range_max)
-            self.warn(f'Length for field "{record.name}" should be {text} signs, e.g. {record.value}', record.name)
+            text = self.get_lenght_text(record.range_min, record.range_max)
+            self.warn(f'Length for field "{record.name}" must be {text} signs, e.g. {record.value}', record.name)
             self.is_correct = False
 
     @staticmethod
-    def get_lenght_error(min, max):
+    def get_lenght_text(min, max):
         if min == max:
             return f'exact {min}'
         return f'between {min} and {max}'

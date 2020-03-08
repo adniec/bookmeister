@@ -18,7 +18,7 @@ def show(image_data):
         image = base64.decodebytes(image_data.encode())
         Image.open(io.BytesIO(image)).show()
         return True
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, OSError, AttributeError):
         return False
 
 
