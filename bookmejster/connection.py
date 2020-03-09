@@ -14,29 +14,29 @@ class Database:
 
     def add(self, values):
         try:
-            requests.request("POST", self.url, data=dumps(values), headers=self.headers)
-        except:
+            response = requests.request("POST", self.url, data=dumps(values), headers=self.headers)
+            return '_id' in response.text
+        except requests.exceptions.ConnectionError:
             return False
-        return True
 
     def search(self, parameters):
         query = f'?q={dumps(parameters)}'
         try:
             response = requests.request("GET", self.url + query, headers=self.headers)
             return loads(response.text)
-        except:
+        except requests.exceptions.ConnectionError:
             return None
 
     def delete(self, id):
         try:
             response = requests.request("DELETE", self.url + '/' + id, headers=self.headers)
-        except:
+            return id in response.text
+        except requests.exceptions.ConnectionError:
             return False
-        return True if id in response.text else False
 
     def update(self, id, values):
         try:
             response = requests.request("PATCH", self.url + '/' + id, data=dumps(values), headers=self.headers)
-        except:
+            return id in response.text
+        except requests.exceptions.ConnectionError:
             return False
-        return True if id in response.text else False
