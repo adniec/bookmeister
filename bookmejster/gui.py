@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.ttk as ttk
 import tkinter.messagebox as msg
 from bookmejster.record import VALUES
 
@@ -19,7 +20,56 @@ class Gui(tk.Tk):
         self.geometry(size)
         self.resizable(0, 0)
         self.form = Form(self)
-        self.form.grid(row=0, column=0)
+        self.form.grid(row=1, column=0)
+        self.search = Search(self)
+        self.search.grid(row=0, column=0, pady=15)
+
+
+class Search(tk.Frame):
+
+    def __init__(self, menu):
+        super().__init__(menu)
+        create_label(self, 'Search results:', 0, 0)
+        self.box = Searchbox(self, menu.form.variables)
+        self.box.grid(row=0, column=1)
+
+
+class Searchbox(ttk.Combobox):
+
+    def __init__(self, frame, variables):
+        super().__init__(frame, width=50, state='readonly')
+        self.values = {}
+        self.variables = variables
+        self.bind('<<ComboboxSelected>>', self.do_on_select)
+
+    def assing_values(self, values):
+        self.clear()
+        try:
+            for value in values:
+                self.values[f'{value["ISBN"]} "{value["Title"]}" by {value["Author"]}'] = value
+            self['values'] = sorted(list(self.values.keys()))
+            self.current(0)
+            self.do_on_select()
+        except (TypeError, tk.TclError):
+            msg.showwarning('No records', 'Could not find any results to set criteria.')
+
+    def do_on_select(self, *_):
+        for key in self.variables.keys():
+            try:
+                self.variables[key].set(self.values[ttk.Combobox.get(self)][key])
+            except KeyError:
+                pass
+
+    def get(self):
+        try:
+            return self.values[ttk.Combobox.get(self)]['_id']
+        except KeyError:
+            msg.showerror('Error', 'No record selected. To perform operation please select record first.')
+
+    def clear(self):
+        self.values.clear()
+        self.set('')
+        self['values'] = []
 
 
 class Form(tk.Frame):
@@ -38,6 +88,7 @@ class Form(tk.Frame):
         return {key: value.get() for key, value in self.variables.items()}
 
     def clear(self):
+        self.menu.search.box.clear()
         for variable in self.variables.values():
             try:
                 variable.set('')
