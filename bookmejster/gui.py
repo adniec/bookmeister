@@ -1,7 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg
-from bookmejster.record import VALUES
+from bookmejster.record import VALUES, Validator, cast_values
+from bookmejster.connection import Database
 
 
 def show_no_connection():
@@ -23,6 +24,7 @@ class Gui(tk.Tk):
         self.form.grid(row=1, column=0)
         self.search = Search(self)
         self.search.grid(row=0, column=0, pady=15)
+        Buttons(self).grid(row=2, column=0, sticky='E')
 
 
 class Search(tk.Frame):
@@ -105,3 +107,76 @@ class Form(tk.Frame):
         content = tk.StringVar(self)
         tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky='W')
         self.variables[name] = content
+
+
+class Buttons(tk.Frame):
+
+    def __init__(self, menu):
+        super().__init__(menu)
+        self.menu = menu
+        positions = ('add', 'search', 'revise', 'delete')
+        for place, name in enumerate(positions):
+            tk.Button(self, text=name.capitalize(), width=5, command=eval(f'self.{name}')).grid(row=0, column=place)
+
+    def process_data(self, data, operation, *args):
+        validator = Validator(self.show_error)
+        validator.process(data)
+        if validator.is_correct:
+            cast_values(data)
+            if operation(*args, data):
+                msg.showinfo('Done', 'Record successfully saved to database.')
+                self.menu.search.box.clear()
+                self.menu.form.clear()
+            else:
+                show_no_connection()
+
+    def add(self):
+        data = self.menu.form.get()
+        exists = self.exist_check(data['ISBN'])
+        if exists is None:
+            show_no_connection()
+        else:
+            if exists:
+                self.show_error('Record with set ISBN already exists in database.')
+            else:
+                self.process_data(data, Database().add)
+
+    def search(self):
+        parameters = {key: value for key, value in self.menu.form.get().items() if value}
+        if parameters:
+            cast_values(parameters)
+            result = Database().search(parameters)
+            if result is None:
+                show_no_connection()
+            else:
+                self.menu.search.box.assing_values(result)
+
+    def revise(self):
+        data = self.menu.form.get()
+        selected = self.menu.search.box.get()
+        if selected:
+            self.process_data(data, Database().update, selected)
+
+    def delete(self):
+        selected = self.menu.search.box.get()
+        if selected:
+            if Database().delete(selected):
+                msg.showinfo('Done', 'Record successfully removed from database.')
+                self.menu.search.box.clear()
+                self.menu.form.clear()
+            else:
+                show_no_connection()
+
+    def show_error(self, message, field=None):
+        if field is None:
+            self.menu.form.clear()
+        else:
+            self.menu.form.variables[field].set('')
+        msg.showerror('Error', message)
+
+    def exist_check(self, number):
+        if number:
+            query = {'ISBN': number}
+            cast_values(query)
+            return Database().search(query)
+        return False
