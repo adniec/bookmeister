@@ -1,4 +1,4 @@
-from bookmejster.gui import Gui
+from bookmeister.gui import Gui
 from sys import platform
 
 

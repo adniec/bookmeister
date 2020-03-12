@@ -3,9 +3,9 @@ import tkinter.ttk as ttk
 import tkinter.messagebox as msg
 from tkinter.filedialog import askopenfile
 from pathlib import Path
-from bookmejster.record import VALUES, Validator, cast_values
-from bookmejster.image import show, get_image
-from bookmejster.connection import Database
+from bookmeister.record import VALUES, Validator, cast_values
+from bookmeister.image import show, get_image
+from bookmeister.connection import Database
 
 
 def show_no_connection():
