@@ -1,7 +1,10 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg
+from tkinter.filedialog import askopenfile
+from pathlib import Path
 from bookmejster.record import VALUES, Validator, cast_values
+from bookmejster.image import show, get_image
 from bookmejster.connection import Database
 
 
@@ -24,7 +27,8 @@ class Gui(tk.Tk):
         self.form.grid(row=1, column=0)
         self.search = Search(self)
         self.search.grid(row=0, column=0, pady=15)
-        Buttons(self).grid(row=2, column=0, sticky='E')
+        Image(self).grid(row=2, column=0, padx=50, sticky='W')
+        Buttons(self).grid(row=3, column=0, sticky='E')
 
 
 class Search(tk.Frame):
@@ -55,6 +59,9 @@ class Searchbox(ttk.Combobox):
         except (TypeError, tk.TclError):
             msg.showwarning('No records', 'Could not find any results to set criteria.')
 
+    def assign_image(self, image):
+        self.values[ttk.Combobox.get(self)]['Cover'] = image
+
     def do_on_select(self, *_):
         for key in self.variables.keys():
             try:
@@ -67,6 +74,12 @@ class Searchbox(ttk.Combobox):
             return self.values[ttk.Combobox.get(self)]['_id']
         except KeyError:
             msg.showerror('Error', 'No record selected. To perform operation please select record first.')
+
+    def get_image(self):
+        try:
+            return self.values[ttk.Combobox.get(self)]['Cover']
+        except KeyError:
+            return None
 
     def clear(self):
         self.values.clear()
@@ -107,6 +120,34 @@ class Form(tk.Frame):
         content = tk.StringVar(self)
         tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky='W')
         self.variables[name] = content
+
+
+class Image(tk.Frame):
+    def __init__(self, menu):
+        super().__init__(menu)
+        self.menu = menu
+        tk.Button(self, text='Add cover', width=8, command=self.add_image).grid(row=0, column=0, pady=15)
+        tk.Button(self, text='View cover', width=8, command=self.view_image).grid(row=0, column=1, sticky='W')
+
+    def add_image(self):
+        selected = self.menu.search.box.get()
+        if selected:
+            path = askopenfile(initialdir=Path.home())
+            if path:
+                image = get_image(path.name)
+                if image:
+                    if Database().update(selected, {'Cover': image}):
+                        self.menu.search.box.assign_image(image)
+                        msg.showinfo('Done', 'Record successfully saved to database.')
+                    else:
+                        show_no_connection()
+                else:
+                    msg.showerror('Error', 'Wrong image file format.')
+
+    def view_image(self):
+        if self.menu.search.box.get():
+            if not show(self.menu.search.box.get_image()):
+                msg.showerror('Error', 'Could not open image. File may be corrupted or not uploaded yet.')
 
 
 class Buttons(tk.Frame):
