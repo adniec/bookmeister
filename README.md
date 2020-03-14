@@ -15,6 +15,12 @@ walks through its features.
 - display of notification after performing action
 
 
+## Installation
+```
+$ git clone https://github.com/ethru/bookemister.git
+$ pip install bookemister/. --user
+```
+
 ## Description
 Each form field must be validated by application before sending value to database. Generally length is checked, but 
 fields listed below have additional conditions:
