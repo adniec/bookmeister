@@ -4,7 +4,7 @@ import tkinter.messagebox as msg
 from tkinter.filedialog import askopenfile
 from pathlib import Path
 from bookmeister.record import VALUES, Validator, cast_values
-from bookmeister.image import show, get_image
+from bookmeister.picture import Picture
 from bookmeister.connection import Database
 
 
@@ -95,7 +95,7 @@ class Form(tk.Frame):
         self.variables = {}
         for place, record in enumerate(VALUES):
             create_label(self, f'{record.name}:', place, 0)
-            self.create_entry(record.name, place, 1)
+            self.create_entry(record.name, record.value, place, 1)
         tk.Button(self, text='Clear', width=4, command=self.clear).grid(row=place + 1, column=1, sticky='NE')
         self.create_checkbutton('Hardcover', place + 1, 0)
 
@@ -116,8 +116,8 @@ class Form(tk.Frame):
         tk.Checkbutton(self, variable=content).grid(row=row, column=column + 1, padx=3, sticky='W')
         self.variables[name] = content
 
-    def create_entry(self, name, row, column):
-        content = tk.StringVar(self)
+    def create_entry(self, name, value, row, column):
+        content = tk.StringVar(self, value=value)
         tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky='W')
         self.variables[name] = content
 
@@ -134,7 +134,7 @@ class Image(tk.Frame):
         if selected:
             path = askopenfile(initialdir=Path.home())
             if path:
-                image = get_image(path.name)
+                image = Picture(path.name).get()
                 if image:
                     if Database().update(selected, {'Cover': image}):
                         self.menu.search.box.assign_image(image)
@@ -146,7 +146,7 @@ class Image(tk.Frame):
 
     def view_image(self):
         if self.menu.search.box.get():
-            if not show(self.menu.search.box.get_image()):
+            if not Picture.show(self.menu.search.box.get_image()):
                 msg.showerror('Error', 'Could not open image. File may be corrupted or not uploaded yet.')
 
 
