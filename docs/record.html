@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>bookmeister.record API documentation</title>
+<meta name="description" content="Record …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>bookmeister.record</code></h1>
+</header>
+<section id="section-intro">
+<p>Record</p>
+<p>Module collecting functions, classes and methods needed for representation and validation of data which will be stored
+in database. <code>VALUES</code> holds information about database keys, example values and accepted length of each field. Function
+<a title="bookmeister.record.cast_values" href="#bookmeister.record.cast_values"><code>cast_values()</code></a> allows to change data types in dictionary (containing strings from <code>tkinter</code> entries) to those expected
+in database. <a title="bookmeister.record.Validator" href="#bookmeister.record.Validator"><code>Validator</code></a> class runs series of tests for data and notifies when values are incorrect. Modules used:
+<code>dataclassess</code> and <code>datetime</code>.</p>
+<h4 id="license">License</h4>
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;Record
+
+Module collecting functions, classes and methods needed for representation and validation of data which will be stored
+in database. `VALUES` holds information about database keys, example values and accepted length of each field. Function
+`cast_values` allows to change data types in dictionary (containing strings from `tkinter` entries) to those expected
+in database. `Validator` class runs series of tests for data and notifies when values are incorrect. Modules used:
+`dataclassess` and `datetime`.
+
+
+#### License
+THE SOFTWARE IS PROVIDED &#34;AS IS&#34;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+&#34;&#34;&#34;
+
+from dataclasses import dataclass
+from datetime import datetime
+
+
+def cast_values(values):
+    &#34;&#34;&#34;Casts values to proper type.
+
+    Parameters
+    ----------
+    values : dict
+        dictionary with names of fields and their values, it can contain only one position or each of them
+
+    Examples
+    --------
+    &gt;&gt;&gt; query = {&#34;Pages&#34;: &#34;50&#34;, &#34;Price&#34;: &#34;12.95&#34;}
+    &gt;&gt;&gt; cast_values(query)
+    &gt;&gt;&gt; query
+    {&#34;Pages&#34;: 50, &#34;Price&#34;: 12.95}
+    &#34;&#34;&#34;
+
+    try:
+        values[&#39;Price&#39;] = float(values[&#39;Price&#39;])
+    except (KeyError, ValueError):
+        pass
+
+    for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+        try:
+            values[field] = int(values[field])
+        except (KeyError, ValueError):
+            pass
+
+
+@dataclass(frozen=True)
+class Record:
+    &#34;&#34;&#34;Used to represent field stored in database. Covers key name, example value, accepted field min and max length.&#34;&#34;&#34;
+
+    name: str
+    value: str
+    range_min: int
+    range_max: int
+
+    def is_length_correct(self, value):
+        &#34;&#34;&#34;Specifies if value has acceptable length.
+
+        Parameters
+        ----------
+        value : str
+            text value which length will be checked
+
+        Returns
+        -------
+        bool
+            True if value length is between `range_min` and `range_max` of `Record` else False
+        &#34;&#34;&#34;
+
+        return self.range_min &lt;= len(value) &lt;= self.range_max
+
+
+VALUES = (
+    Record(&#39;Title&#39;, &#39;From Russia, with Love&#39;, 1, 50),
+    Record(&#39;Author&#39;, &#39;Ian Fleming&#39;, 3, 50),
+    Record(&#39;Type&#39;, &#39;Thriller&#39;, 3, 20),
+    Record(&#39;Publisher&#39;, &#39;Thomas and Mercer&#39;, 1, 30),
+    Record(&#39;ISBN&#39;, &#39;9781612185477&#39;, 13, 13),
+    Record(&#39;Release&#39;, &#39;2012&#39;, 4, 4),
+    Record(&#39;Language&#39;, &#39;EN&#39;, 2, 2),
+    Record(&#39;Pages&#39;, &#39;181&#39;, 1, 4),
+    Record(&#39;Quantity&#39;, &#39;10&#39;, 1, 3),
+    Record(&#39;Price&#39;, &#39;125.50&#39;, 1, 6),
+    Record(&#39;Discount&#39;, &#39;0&#39;, 1, 2),
+)
+
+
+class Validator:
+    &#34;&#34;&#34;
+    Responsible for validation of data.
+
+    ...
+
+    Attributes
+    ----------
+    is_correct : bool
+        information about validation process
+    numeric_fields : tuple
+        names of numeric fields
+
+    Methods
+    -------
+    warn(message, field=None)
+        displays error window with passed message and clears set field, if None clears whole form
+
+    Examples
+    --------
+    Check each value of all necessary fields in dictionary:
+    &gt;&gt;&gt; values = {
+    ...     &#34;Title&#34;: &#34;From Russia, with Love&#34;,
+    ...     &#34;Author&#34;: &#34;Ian Fleming&#34;,
+    ...     &#34;Type&#34;: &#34;Thriller&#34;,
+    ...     &#34;Publisher&#34;: &#34;Thomas and Mercer&#34;,
+    ...     &#34;ISBN&#34;: &#34;9781612185477&#34;,
+    ...     &#34;Release&#34;: &#34;2012&#34;,
+    ...     &#34;Language&#34;: &#34;EN&#34;,
+    ...     &#34;Pages&#34;: &#34;181&#34;,
+    ...     &#34;Quantity&#34;: &#34;10&#34;,
+    ...     &#34;Price&#34;: &#34;125.5&#34;,
+    ...     &#34;Discount&#34;: &#34;0&#34;
+    ... }
+    &gt;&gt;&gt; validator = Validator(self.show_error)
+    &gt;&gt;&gt; validtor.process(values)
+    &gt;&gt;&gt; validator.is_correct
+    True
+
+    Check single field:
+    &gt;&gt;&gt; validator = Validator(self.show_error)
+    &gt;&gt;&gt; validtor.check_isbn(&#34;9781612185477&#34;)
+    &gt;&gt;&gt; validator.is_correct
+    True
+    &#34;&#34;&#34;
+
+    def __init__(self, show_error):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        show_error : method
+            method from Gui to display error and clear proper field
+        &#34;&#34;&#34;
+
+        self.is_correct = True
+        self.numeric_fields = (&#39;Pages&#39;, &#39;Quantity&#39;, &#39;Price&#39;, &#39;Discount&#39;)
+        self.warn = show_error
+
+    def process(self, data):
+        &#34;&#34;&#34;Checks fields from dictionary with data.
+
+        Parameters
+        ----------
+        data : dict
+            contains all keys necessary in database record and their values to check
+        &#34;&#34;&#34;
+
+        for record in VALUES:
+            self.check_length(record, data[record.name])
+        for key in self.numeric_fields:
+            self.check_number(data[key], key)
+        self.check_isbn(data[&#39;ISBN&#39;])
+        self.check_release(data[&#39;Release&#39;])
+
+    def check_release(self, year):
+        &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
+
+        Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
+        to False and displays error.
+
+        Parameters
+        ----------
+        year : str
+            string to check if it is between accepted values
+        &#34;&#34;&#34;
+
+        min = 1800
+        max = datetime.now().year + 1
+        try:
+            if min &lt;= int(year) &lt;= max: return
+        except ValueError:
+            pass
+        self.is_correct = False
+        self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)
+
+    def check_isbn(self, number):
+        &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
+
+        Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
+        checksum. If conditions are not met sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        number : str
+            string to check if it is correct ISBN-13 number
+        &#34;&#34;&#34;
+
+        if number.isdigit() and len(number) == 13:
+            n = [int(x) for x in number]
+            control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                    n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+            if n[12] == control: return
+        self.is_correct = False
+        self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)
+
+    def check_number(self, value, field):
+        &#34;&#34;&#34;Checks if value for passed field is correct.
+
+        Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        value : str
+            string to check if it can be converted to float
+        field : str
+            name of field which is checked
+        &#34;&#34;&#34;
+
+        try:
+            float(value)
+        except ValueError:
+            self.is_correct = False
+            self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)
+
+    def check_length(self, record, value):
+        &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
+
+        If not sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        record : Record
+            class representing record with its name, example value and min, max accepted length
+        value : str
+            string to check if it has proper length
+        &#34;&#34;&#34;
+
+        is_correct = record.is_length_correct(value)
+        if not is_correct:
+            text = self.get_length_text(record.range_min, record.range_max)
+            self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
+            self.is_correct = False
+
+    @staticmethod
+    def get_length_text(min: int, max: int) -&gt; str:
+        &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
+
+        if min == max:
+            return f&#39;exact {min}&#39;
+        return f&#39;between {min} and {max}&#39;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="bookmeister.record.cast_values"><code class="name flex">
+<span>def <span class="ident">cast_values</span></span>(<span>values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Casts values to proper type.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
+<dd>dictionary with names of fields and their values, it can contain only one position or each of them</dd>
+</dl>
+<h2 id="examples">Examples</h2>
+<pre><code>&gt;&gt;&gt; query = {"Pages": "50", "Price": "12.95"}
+&gt;&gt;&gt; cast_values(query)
+&gt;&gt;&gt; query
+{"Pages": 50, "Price": 12.95}
+</code></pre></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cast_values(values):
+    &#34;&#34;&#34;Casts values to proper type.
+
+    Parameters
+    ----------
+    values : dict
+        dictionary with names of fields and their values, it can contain only one position or each of them
+
+    Examples
+    --------
+    &gt;&gt;&gt; query = {&#34;Pages&#34;: &#34;50&#34;, &#34;Price&#34;: &#34;12.95&#34;}
+    &gt;&gt;&gt; cast_values(query)
+    &gt;&gt;&gt; query
+    {&#34;Pages&#34;: 50, &#34;Price&#34;: 12.95}
+    &#34;&#34;&#34;
+
+    try:
+        values[&#39;Price&#39;] = float(values[&#39;Price&#39;])
+    except (KeyError, ValueError):
+        pass
+
+    for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+        try:
+            values[field] = int(values[field])
+        except (KeyError, ValueError):
+            pass</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="bookmeister.record.Record"><code class="flex name class">
+<span>class <span class="ident">Record</span></span>
+<span>(</span><span>name, value, range_min, range_max)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Used to represent field stored in database. Covers key name, example value, accepted field min and max length.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Record:
+    &#34;&#34;&#34;Used to represent field stored in database. Covers key name, example value, accepted field min and max length.&#34;&#34;&#34;
+
+    name: str
+    value: str
+    range_min: int
+    range_max: int
+
+    def is_length_correct(self, value):
+        &#34;&#34;&#34;Specifies if value has acceptable length.
+
+        Parameters
+        ----------
+        value : str
+            text value which length will be checked
+
+        Returns
+        -------
+        bool
+            True if value length is between `range_min` and `range_max` of `Record` else False
+        &#34;&#34;&#34;
+
+        return self.range_min &lt;= len(value) &lt;= self.range_max</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="bookmeister.record.Record.is_length_correct"><code class="name flex">
+<span>def <span class="ident">is_length_correct</span></span>(<span>self, value)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Specifies if value has acceptable length.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>text value which length will be checked</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if value length is between <code>range_min</code> and <code>range_max</code> of <a title="bookmeister.record.Record" href="#bookmeister.record.Record"><code>Record</code></a> else False</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_length_correct(self, value):
+    &#34;&#34;&#34;Specifies if value has acceptable length.
+
+    Parameters
+    ----------
+    value : str
+        text value which length will be checked
+
+    Returns
+    -------
+    bool
+        True if value length is between `range_min` and `range_max` of `Record` else False
+    &#34;&#34;&#34;
+
+    return self.range_min &lt;= len(value) &lt;= self.range_max</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="bookmeister.record.Validator"><code class="flex name class">
+<span>class <span class="ident">Validator</span></span>
+<span>(</span><span>show_error)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Responsible for validation of data.</p>
+<p>&hellip;</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>is_correct</code></strong> :&ensp;<code>bool</code></dt>
+<dd>information about validation process</dd>
+<dt><strong><code>numeric_fields</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>names of numeric fields</dd>
+</dl>
+<h2 id="methods">Methods</h2>
+<p>warn(message, field=None)
+displays error window with passed message and clears set field, if None clears whole form</p>
+<h2 id="examples">Examples</h2>
+<p>Check each value of all necessary fields in dictionary:</p>
+<pre><code>&gt;&gt;&gt; values = {
+...     "Title": "From Russia, with Love",
+...     "Author": "Ian Fleming",
+...     "Type": "Thriller",
+...     "Publisher": "Thomas and Mercer",
+...     "ISBN": "9781612185477",
+...     "Release": "2012",
+...     "Language": "EN",
+...     "Pages": "181",
+...     "Quantity": "10",
+...     "Price": "125.5",
+...     "Discount": "0"
+... }
+&gt;&gt;&gt; validator = Validator(self.show_error)
+&gt;&gt;&gt; validtor.process(values)
+&gt;&gt;&gt; validator.is_correct
+**`True`**
+</code></pre>
+<dl>
+<dd>&nbsp;</dd>
+</dl>
+<p>Check single field:</p>
+<pre><code>&gt;&gt;&gt; validator = Validator(self.show_error)
+&gt;&gt;&gt; validtor.check_isbn("9781612185477")
+&gt;&gt;&gt; validator.is_correct
+**`True`**
+</code></pre>
+<dl>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>show_error</code></strong> :&ensp;<code>method</code></dt>
+<dd>method from Gui to display error and clear proper field</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Validator:
+    &#34;&#34;&#34;
+    Responsible for validation of data.
+
+    ...
+
+    Attributes
+    ----------
+    is_correct : bool
+        information about validation process
+    numeric_fields : tuple
+        names of numeric fields
+
+    Methods
+    -------
+    warn(message, field=None)
+        displays error window with passed message and clears set field, if None clears whole form
+
+    Examples
+    --------
+    Check each value of all necessary fields in dictionary:
+    &gt;&gt;&gt; values = {
+    ...     &#34;Title&#34;: &#34;From Russia, with Love&#34;,
+    ...     &#34;Author&#34;: &#34;Ian Fleming&#34;,
+    ...     &#34;Type&#34;: &#34;Thriller&#34;,
+    ...     &#34;Publisher&#34;: &#34;Thomas and Mercer&#34;,
+    ...     &#34;ISBN&#34;: &#34;9781612185477&#34;,
+    ...     &#34;Release&#34;: &#34;2012&#34;,
+    ...     &#34;Language&#34;: &#34;EN&#34;,
+    ...     &#34;Pages&#34;: &#34;181&#34;,
+    ...     &#34;Quantity&#34;: &#34;10&#34;,
+    ...     &#34;Price&#34;: &#34;125.5&#34;,
+    ...     &#34;Discount&#34;: &#34;0&#34;
+    ... }
+    &gt;&gt;&gt; validator = Validator(self.show_error)
+    &gt;&gt;&gt; validtor.process(values)
+    &gt;&gt;&gt; validator.is_correct
+    True
+
+    Check single field:
+    &gt;&gt;&gt; validator = Validator(self.show_error)
+    &gt;&gt;&gt; validtor.check_isbn(&#34;9781612185477&#34;)
+    &gt;&gt;&gt; validator.is_correct
+    True
+    &#34;&#34;&#34;
+
+    def __init__(self, show_error):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        show_error : method
+            method from Gui to display error and clear proper field
+        &#34;&#34;&#34;
+
+        self.is_correct = True
+        self.numeric_fields = (&#39;Pages&#39;, &#39;Quantity&#39;, &#39;Price&#39;, &#39;Discount&#39;)
+        self.warn = show_error
+
+    def process(self, data):
+        &#34;&#34;&#34;Checks fields from dictionary with data.
+
+        Parameters
+        ----------
+        data : dict
+            contains all keys necessary in database record and their values to check
+        &#34;&#34;&#34;
+
+        for record in VALUES:
+            self.check_length(record, data[record.name])
+        for key in self.numeric_fields:
+            self.check_number(data[key], key)
+        self.check_isbn(data[&#39;ISBN&#39;])
+        self.check_release(data[&#39;Release&#39;])
+
+    def check_release(self, year):
+        &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
+
+        Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
+        to False and displays error.
+
+        Parameters
+        ----------
+        year : str
+            string to check if it is between accepted values
+        &#34;&#34;&#34;
+
+        min = 1800
+        max = datetime.now().year + 1
+        try:
+            if min &lt;= int(year) &lt;= max: return
+        except ValueError:
+            pass
+        self.is_correct = False
+        self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)
+
+    def check_isbn(self, number):
+        &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
+
+        Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
+        checksum. If conditions are not met sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        number : str
+            string to check if it is correct ISBN-13 number
+        &#34;&#34;&#34;
+
+        if number.isdigit() and len(number) == 13:
+            n = [int(x) for x in number]
+            control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                    n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+            if n[12] == control: return
+        self.is_correct = False
+        self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)
+
+    def check_number(self, value, field):
+        &#34;&#34;&#34;Checks if value for passed field is correct.
+
+        Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        value : str
+            string to check if it can be converted to float
+        field : str
+            name of field which is checked
+        &#34;&#34;&#34;
+
+        try:
+            float(value)
+        except ValueError:
+            self.is_correct = False
+            self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)
+
+    def check_length(self, record, value):
+        &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
+
+        If not sets `self.is_correct` to False and displays error.
+
+        Parameters
+        ----------
+        record : Record
+            class representing record with its name, example value and min, max accepted length
+        value : str
+            string to check if it has proper length
+        &#34;&#34;&#34;
+
+        is_correct = record.is_length_correct(value)
+        if not is_correct:
+            text = self.get_length_text(record.range_min, record.range_max)
+            self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
+            self.is_correct = False
+
+    @staticmethod
+    def get_length_text(min: int, max: int) -&gt; str:
+        &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
+
+        if min == max:
+            return f&#39;exact {min}&#39;
+        return f&#39;between {min} and {max}&#39;</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="bookmeister.record.Validator.get_length_text"><code class="name flex">
+<span>def <span class="ident">get_length_text</span></span>(<span>min, max)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns text according to min and max value.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def get_length_text(min: int, max: int) -&gt; str:
+    &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
+
+    if min == max:
+        return f&#39;exact {min}&#39;
+    return f&#39;between {min} and {max}&#39;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bookmeister.record.Validator.check_isbn"><code class="name flex">
+<span>def <span class="ident">check_isbn</span></span>(<span>self, number)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if value for field "ISBN" is correct.</p>
+<p>Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
+checksum. If conditions are not met sets <code>self.is_correct</code> to False and displays error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>number</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is correct ISBN-13 number</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_isbn(self, number):
+    &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
+
+    Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
+    checksum. If conditions are not met sets `self.is_correct` to False and displays error.
+
+    Parameters
+    ----------
+    number : str
+        string to check if it is correct ISBN-13 number
+    &#34;&#34;&#34;
+
+    if number.isdigit() and len(number) == 13:
+        n = [int(x) for x in number]
+        control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+        if n[12] == control: return
+    self.is_correct = False
+    self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.Validator.check_length"><code class="name flex">
+<span>def <span class="ident">check_length</span></span>(<span>self, record, value)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if passed value has acceptable length for set record.</p>
+<p>If not sets <code>self.is_correct</code> to False and displays error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>record</code></strong> :&ensp;<a title="bookmeister.record.Record" href="#bookmeister.record.Record"><code>Record</code></a></dt>
+<dd>class representing record with its name, example value and min, max accepted length</dd>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it has proper length</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_length(self, record, value):
+    &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
+
+    If not sets `self.is_correct` to False and displays error.
+
+    Parameters
+    ----------
+    record : Record
+        class representing record with its name, example value and min, max accepted length
+    value : str
+        string to check if it has proper length
+    &#34;&#34;&#34;
+
+    is_correct = record.is_length_correct(value)
+    if not is_correct:
+        text = self.get_length_text(record.range_min, record.range_max)
+        self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
+        self.is_correct = False</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.Validator.check_number"><code class="name flex">
+<span>def <span class="ident">check_number</span></span>(<span>self, value, field)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if value for passed field is correct.</p>
+<p>Checks if value can be converted to float. If not sets <code>self.is_correct</code> to False and displays error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it can be converted to float</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of field which is checked</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_number(self, value, field):
+    &#34;&#34;&#34;Checks if value for passed field is correct.
+
+    Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it can be converted to float
+    field : str
+        name of field which is checked
+    &#34;&#34;&#34;
+
+    try:
+        float(value)
+    except ValueError:
+        self.is_correct = False
+        self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.Validator.check_release"><code class="name flex">
+<span>def <span class="ident">check_release</span></span>(<span>self, year)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks if value for field "Release" is correct.</p>
+<p>Tries to convert passed value to int and checks if it is between accepted values. If not sets <code>self.is_correct</code>
+to False and displays error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>year</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is between accepted values</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_release(self, year):
+    &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
+
+    Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
+    to False and displays error.
+
+    Parameters
+    ----------
+    year : str
+        string to check if it is between accepted values
+    &#34;&#34;&#34;
+
+    min = 1800
+    max = datetime.now().year + 1
+    try:
+        if min &lt;= int(year) &lt;= max: return
+    except ValueError:
+        pass
+    self.is_correct = False
+    self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.Validator.process"><code class="name flex">
+<span>def <span class="ident">process</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Checks fields from dictionary with data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
+<dd>contains all keys necessary in database record and their values to check</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process(self, data):
+    &#34;&#34;&#34;Checks fields from dictionary with data.
+
+    Parameters
+    ----------
+    data : dict
+        contains all keys necessary in database record and their values to check
+    &#34;&#34;&#34;
+
+    for record in VALUES:
+        self.check_length(record, data[record.name])
+    for key in self.numeric_fields:
+        self.check_number(data[key], key)
+    self.check_isbn(data[&#39;ISBN&#39;])
+    self.check_release(data[&#39;Release&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#license">License</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="bookmeister" href="index.html">bookmeister</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="bookmeister.record.cast_values" href="#bookmeister.record.cast_values">cast_values</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="bookmeister.record.Record" href="#bookmeister.record.Record">Record</a></code></h4>
+<ul class="">
+<li><code><a title="bookmeister.record.Record.is_length_correct" href="#bookmeister.record.Record.is_length_correct">is_length_correct</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="bookmeister.record.Validator" href="#bookmeister.record.Validator">Validator</a></code></h4>
+<ul class="two-column">
+<li><code><a title="bookmeister.record.Validator.check_isbn" href="#bookmeister.record.Validator.check_isbn">check_isbn</a></code></li>
+<li><code><a title="bookmeister.record.Validator.check_length" href="#bookmeister.record.Validator.check_length">check_length</a></code></li>
+<li><code><a title="bookmeister.record.Validator.check_number" href="#bookmeister.record.Validator.check_number">check_number</a></code></li>
+<li><code><a title="bookmeister.record.Validator.check_release" href="#bookmeister.record.Validator.check_release">check_release</a></code></li>
+<li><code><a title="bookmeister.record.Validator.get_length_text" href="#bookmeister.record.Validator.get_length_text">get_length_text</a></code></li>
+<li><code><a title="bookmeister.record.Validator.process" href="#bookmeister.record.Validator.process">process</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
