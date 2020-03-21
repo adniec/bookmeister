@@ -15,9 +15,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from PIL import Image
 import base64
 import io
+
+from PIL import Image
 
 
 class Picture:

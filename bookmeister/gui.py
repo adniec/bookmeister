@@ -16,14 +16,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from pathlib import Path
+
 import tkinter as tk
 import tkinter.ttk as ttk
-import tkinter.messagebox as msg
 from tkinter.filedialog import askopenfile
-from pathlib import Path
-from bookmeister.record import VALUES, Validator, cast_values
-from bookmeister.picture import Picture
+import tkinter.messagebox as msg
+
 from bookmeister.connection import Database
+from bookmeister.picture import Picture
+from bookmeister.record import VALUES, Validator, cast_values
 
 
 def show_no_connection():
@@ -77,7 +79,7 @@ class Gui(tk.Tk):
         super().__init__()
         self.title(title)
         self.geometry(size)
-        self.resizable(0, 0)
+        self.resizable(False, False)
         self.form = Form(self)
         self.form.grid(row=1, column=0)
         self.search = Search(self)

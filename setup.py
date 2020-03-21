@@ -26,8 +26,12 @@ setup(
                  'Topic :: Office/Business',
                  'Programming Language :: Python',
                  'Programming Language :: Python :: 3',
-                 'Programming Language :: Python :: 3.7'
+                 'Programming Language :: Python :: 3.7',
                  ],
     packages=['bookmeister'],
-    entry_points={'console_scripts': 'bookmeister=bookmeister.__main__:main'}
+    entry_points={
+        'gui_scripts': [
+            'bookmeister = bookmeister.__main__:main'
+        ],
+    },
 )

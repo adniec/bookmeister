@@ -14,8 +14,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from bookmeister.gui import Gui
 from sys import platform
+
+from bookmeister.gui import Gui
 
 
 def main():
