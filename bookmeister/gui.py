@@ -3,7 +3,7 @@
 Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
 represented by classes `Search`, `Form`, `Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`
 is extended `tkinter.Combobox` class to application needs. `Gui` connects each part and places them in main window
-which will be displayed. Modules used: `pathlib` and `tkinter` with `ttk`, `messagebox`, `filedialog`.
+which will be displayed. Modules used: `pathlib`, `sys` and `tkinter` with `ttk`, `messagebox`, `filedialog`.
 
 
 #### License
@@ -17,10 +17,11 @@ SOFTWARE.
 """
 
 from pathlib import Path
+import sys
 
 import tkinter as tk
-import tkinter.ttk as ttk
 from tkinter.filedialog import askopenfile
+import tkinter.ttk as ttk
 import tkinter.messagebox as msg
 
 from bookmeister.connection import Database
@@ -76,16 +77,33 @@ class Gui(tk.Tk):
             application size in format 'heightxwidth'
         """
 
-        super().__init__()
+        super().__init__(className=title)
         self.title(title)
         self.geometry(size)
         self.resizable(False, False)
+        self.iconphoto(False, tk.PhotoImage(file=self.get_icon()))
         self.form = Form(self)
         self.form.grid(row=1, column=0)
         self.search = Search(self)
         self.search.grid(row=0, column=0, pady=15)
         Image(self).grid(row=2, column=0, padx=50, sticky='W')
         Buttons(self).grid(row=3, column=0, sticky='E')
+
+    def get_icon(self):
+        """Gets icon path.
+
+        According to type of installation picks method to get icon path. It can by obtained from module directory or
+        from `_MEIPASS` when application is built.
+
+        Returns
+        -------
+        Path
+            `pathlib.Path` object containing information about icon path
+        """
+
+        directory = getattr(sys, '_MEIPASS', Path(__file__).parent.absolute())
+        icon_path = Path(directory) / 'bookmeister.png'
+        return icon_path
 
 
 class Search(tk.Frame):

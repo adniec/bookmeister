@@ -29,6 +29,7 @@ setup(
                  'Programming Language :: Python :: 3.7',
                  ],
     packages=['bookmeister'],
+    include_package_data=True,
     entry_points={
         'gui_scripts': [
             'bookmeister = bookmeister.__main__:main'
