@@ -20,6 +20,13 @@ walks through its features.
 $ git clone https://github.com/ethru/bookmeister.git
 $ pip install bookmeister/.
 ```
+## Build
+```
+$ git clone https://github.com/ethru/bookmeister.git
+$ cd bookmeister
+$ pip install -r requirements.txt
+$ python build.py
+```
 
 ## Description
 Each form field must be validated by application before sending value to database. Generally length is checked, but 

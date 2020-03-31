@@ -1,1 +1,3 @@
 include bookmeister/bookmeister.png
+include requirements.txt
+include README.md
