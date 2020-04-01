@@ -1,4 +1,6 @@
 from setuptools import setup
+from sys import platform
+
 from bookmeister import __version__
 
 with open('README.md') as readme:
@@ -6,6 +8,11 @@ with open('README.md') as readme:
 
 with open('requirements.txt') as required:
     requirements = required.read()
+
+data_files = []
+if platform == 'linux':
+    data_files.append(('share/applications', ['data/bookmeister.desktop']))
+    data_files.append(('share/icons/', ['bookmeister/bookmeister.png']))
 
 setup(
     name='bookmeister',
@@ -29,6 +36,7 @@ setup(
                  'Programming Language :: Python :: 3.7',
                  ],
     packages=['bookmeister'],
+    data_files=data_files,
     include_package_data=True,
     entry_points={
         'gui_scripts': [

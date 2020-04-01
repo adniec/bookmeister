@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Terminal=false
+Name=Bookstore Manager
+Icon=bookmeister
+Exec=bookmeister
+Categories=Utility;
