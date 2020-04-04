@@ -20,7 +20,7 @@
 <h1 class="title">Module <code>bookmeister.connection</code></h1>
 </header>
 <section id="section-intro">
-<p>Connection</p>
+<h4 id="connection">Connection</h4>
 <p>Module with <a title="bookmeister.connection.Database" href="#bookmeister.connection.Database"><code>Database</code></a> class which gathers methods necessary to communicate with database REST API. It allows to add,
 search, update or delete records. To perform those operations <code>requests</code> module is used. Every method confirms its
 result by returning True or expected data. In case of error False or None is returned. Values received or sent to
@@ -37,7 +37,7 @@ SOFTWARE.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Connection
+<pre><code class="python">&#34;&#34;&#34;#### Connection
 
 Module with `Database` class which gathers methods necessary to communicate with database REST API. It allows to add,
 search, update or delete records. To perform those operations `requests` module is used. Every method confirms its
@@ -55,8 +55,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 &#34;&#34;&#34;
 
-import requests
 from json import dumps, loads
+
+import requests
 
 
 class Database:
@@ -480,6 +481,7 @@ class Database:
 <h1>Index</h1>
 <div class="toc">
 <ul>
+<li><a href="#connection">Connection</a></li>
 <li><a href="#license">License</a></li>
 </ul>
 </div>

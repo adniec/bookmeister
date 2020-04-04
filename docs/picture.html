@@ -20,7 +20,7 @@
 <h1 class="title">Module <code>bookmeister.picture</code></h1>
 </header>
 <section id="section-intro">
-<p>Picture</p>
+<h4 id="picture">Picture</h4>
 <p>Module created for processing image data. It encodes or decodes information about picture which will be send or is
 received from database. Operations performed here ensure that data will be stored in proper form. Module responsible
 for it is <code>base64</code>. To display image <code>PIL</code> and <code>io</code> are used.</p>
@@ -36,7 +36,7 @@ SOFTWARE.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Picture
+<pre><code class="python">&#34;&#34;&#34;#### Picture
 
 Module created for processing image data. It encodes or decodes information about picture which will be send or is
 received from database. Operations performed here ensure that data will be stored in proper form. Module responsible
@@ -53,9 +53,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 &#34;&#34;&#34;
 
-from PIL import Image
 import base64
 import io
+
+from PIL import Image
 
 
 class Picture:
@@ -388,6 +389,7 @@ def show(image_data):
 <h1>Index</h1>
 <div class="toc">
 <ul>
+<li><a href="#picture">Picture</a></li>
 <li><a href="#license">License</a></li>
 </ul>
 </div>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
 <title>bookmeister API documentation</title>
-<meta name="description" content="Bookstore Manager …" />
+<meta name="description" content="bookmeister …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,56 +20,111 @@
 <h1 class="title">Module <code>bookmeister</code></h1>
 </header>
 <section id="section-intro">
-<p>Bookstore Manager</p>
-<h4 id="introduction">Introduction</h4>
-<p>Application is part of university project. Idea was to create online bookstore. Module presented here is responsible for
-connection with database REST API. It allows to store, load, update and delete records from books collection. Main goal
-of this part was to design simple and intuitive GUI for bookstore employees.</p>
-<h4 id="features">Features</h4>
+<h1 id="bookmeister">bookmeister</h1>
+<p>Application is part of <strong>university project</strong>. Idea was to create online <strong>bookstore</strong>. Module presented here is
+responsible for connection with database <strong>REST API</strong>. It allows to store, load, update and delete records from books
+collection. Main goal of this part was to design simple and <strong>intuitive GUI</strong> for bookstore <strong>employees</strong>. Description below
+walks through its features.</p>
+<p><img alt="Menu" src="https://raw.githubusercontent.com/ethru/bookmeister/master/data/menu.png"></p>
+<h2 id="features">Features</h2>
 <ul>
-<li>form validation before sending values to database</li>
+<li>form validation before sending values to <a href="https://restdb.io/">database</a></li>
 <li>search by one or many parameters</li>
 <li>easy edit of data: form autofill when record chosen from search results</li>
 <li>upload / download (view) of book cover</li>
 <li>display of notification after performing action</li>
 </ul>
-<h4 id="license">License</h4>
-<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.</p>
+<h2 id="installation">Installation</h2>
+<pre><code>$ git clone &lt;https://github.com/ethru/bookmeister.git&gt;
+$ pip install bookmeister/.
+</code></pre>
+<h2 id="build">Build</h2>
+<pre><code>$ git clone &lt;https://github.com/ethru/bookmeister.git&gt;
+$ cd bookmeister
+$ pip install -r requirements.txt
+$ python build.py
+</code></pre>
+<h2 id="description">Description</h2>
+<p>Each form field must be validated by application before sending value to database. Generally length is checked, but
+fields listed below have additional conditions:</p>
+<ul>
+<li>ISBN : is 13 digits number validated by formula described
+<a href="https://isbn-information.com/check-digit-for-the-13-digit-isbn.html">here</a></li>
+<li>Release : year when book was published (number)</li>
+<li>Language : two characters code according to <a href="https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes">ISO 639-1</a></li>
+<li>Pages, Quantity, Discount (%) : value need to be integer</li>
+<li>Price : is float number</li>
+</ul>
+<p>When provided data are other than expected proper notification will be displayed, e.g.</p>
+<p><img alt="Notification" src="https://raw.githubusercontent.com/ethru/bookmeister/master/data/notification.png"> </p>
+<p>Same type of notifications is used in case of database connection errors. </p>
+<p>When operation is performed successfully user is informed by pop-up window aswell.</p>
+<h2 id="usage">Usage</h2>
+<p>Use <code>$ bookmeister</code> or <code>$ python -m bookmeister</code> to launch installed application from terminal.</p>
+<ul>
+<li><strong>add</strong> new record to database<ul>
+<li>fill the form with book description</li>
+<li>tick box when book has hardcover</li>
+<li>press "Add" button</li>
+<li>when error notification occurs correct field and try again</li>
+</ul>
+</li>
+<li><strong>search</strong> record in database<ul>
+<li>fill one or many form fields and press "Search" button</li>
+<li>"Search results" list will be populated by records matching criteria</li>
+<li>first matching result will be loaded to application form</li>
+</ul>
+</li>
+<li><strong>update</strong> record<ul>
+<li>use search option to find and select record first</li>
+<li>change fields in form and press "Revise" button</li>
+</ul>
+</li>
+<li><strong>delete</strong> record<ul>
+<li>use search option to find and select record first</li>
+<li>press "Delete" button</li>
+</ul>
+</li>
+<li><strong>add</strong> record <strong>cover</strong> image<ul>
+<li>use search option to find and select record first</li>
+<li>press "Add cover" button</li>
+<li>pick image in pop-up window and confirm with "Open" button</li>
+</ul>
+</li>
+<li><strong>view</strong> record <strong>cover</strong> image<ul>
+<li>use search option to find and select record first</li>
+<li>press "View cover" button</li>
+<li>image or error notification will be displayed</li>
+</ul>
+</li>
+<li><strong>clear</strong> form<ul>
+<li>press "Clear" button</li>
+<li>all values from fields and "Search results" will be removed</li>
+</ul>
+</li>
+</ul>
+<h2 id="project-information">Project Information</h2>
+<h5 id="documentation">Documentation</h5>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc/">pdoc3</a> and included in
+<a href="https://github.com/ethru/bookmeister/tree/master/docs">docs</a> directory. Open it
+<a href="https://ethru.github.io/bookmeister/">here</a>.</p>
+<h5 id="requirements">Requirements</h5>
+<ul>
+<li>Python3.7+</li>
+<li>Check <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/requirements.txt">requirements.txt</a> file to see used
+modules and their version.</li>
+</ul>
+<h5 id="author-adrian-niec">Author: Adrian Niec</h5>
+<h5 id="this-project-is-under-the-mit-license">This project is under the MIT <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/LICENSE">License</a></h5>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Bookstore Manager
-
-#### Introduction
-Application is part of university project. Idea was to create online bookstore. Module presented here is responsible for
-connection with database REST API. It allows to store, load, update and delete records from books collection. Main goal
-of this part was to design simple and intuitive GUI for bookstore employees.
-
-#### Features
-- form validation before sending values to database
-- search by one or many parameters
-- easy edit of data: form autofill when record chosen from search results
-- upload / download (view) of book cover
-- display of notification after performing action
-
-#### License
-THE SOFTWARE IS PROVIDED &#34;AS IS&#34;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+<pre><code class="python">&#34;&#34;&#34;
+.. include:: ../README.md
 &#34;&#34;&#34;
 
-__version__ = &#39;1.0.0&#39;</code></pre>
+__version__ = &#39;2020.3.20&#39;</code></pre>
 </details>
 </section>
 <section>
@@ -104,9 +159,21 @@ __version__ = &#39;1.0.0&#39;</code></pre>
 <h1>Index</h1>
 <div class="toc">
 <ul>
-<li><a href="#introduction">Introduction</a></li>
+<li><a href="#bookmeister">bookmeister</a><ul>
 <li><a href="#features">Features</a></li>
-<li><a href="#license">License</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#build">Build</a></li>
+<li><a href="#description">Description</a></li>
+<li><a href="#usage">Usage</a></li>
+<li><a href="#project-information">Project Information</a><ul>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#requirements">Requirements</a></li>
+<li><a href="#author-adrian-niec">Author: Adrian Niec</a></li>
+<li><a href="#this-project-is-under-the-mit-license">This project is under the MIT License</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </div>
 <ul id="index">

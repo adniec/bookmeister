@@ -1,4 +1,4 @@
-"""Record
+"""#### Record
 
 Module collecting functions, classes and methods needed for representation and validation of data which will be stored
 in database. `VALUES` holds information about database keys, example values and accepted length of each field. Function

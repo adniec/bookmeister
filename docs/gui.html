@@ -20,11 +20,11 @@
 <h1 class="title">Module <code>bookmeister.gui</code></h1>
 </header>
 <section id="section-intro">
-<p>GUI</p>
+<h4 id="gui">GUI</h4>
 <p>Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
 represented by classes <a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a>, <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a>, <a title="bookmeister.gui.Buttons" href="#bookmeister.gui.Buttons"><code>Buttons</code></a> and <a title="bookmeister.gui.Image" href="#bookmeister.gui.Image"><code>Image</code></a> where each of them extends <code>tkinter.Frame</code>. <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a>
 is extended <code>tkinter.Combobox</code> class to application needs. <a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a> connects each part and places them in main window
-which will be displayed. Modules used: <code>pathlib</code> and <code>tkinter</code> with <code>ttk</code>, <code>messagebox</code>, <code>filedialog</code>.</p>
+which will be displayed. Modules used: <code>pathlib</code>, <code>sys</code> and <code>tkinter</code> with <code>ttk</code>, <code>messagebox</code>, <code>filedialog</code>.</p>
 <h4 id="license">License</h4>
 <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -37,12 +37,12 @@ SOFTWARE.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;GUI
+<pre><code class="python">&#34;&#34;&#34;#### GUI
 
 Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
 represented by classes `Search`, `Form`, `Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`
 is extended `tkinter.Combobox` class to application needs. `Gui` connects each part and places them in main window
-which will be displayed. Modules used: `pathlib` and `tkinter` with `ttk`, `messagebox`, `filedialog`.
+which will be displayed. Modules used: `pathlib`, `sys` and `tkinter` with `ttk`, `messagebox`, `filedialog`.
 
 
 #### License
@@ -55,14 +55,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 &#34;&#34;&#34;
 
+from pathlib import Path
+import sys
+
 import tkinter as tk
+from tkinter.filedialog import askopenfile
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg
-from tkinter.filedialog import askopenfile
-from pathlib import Path
-from bookmeister.record import VALUES, Validator, cast_values
-from bookmeister.picture import Picture
+
 from bookmeister.connection import Database
+from bookmeister.picture import Picture
+from bookmeister.record import VALUES, Validator, cast_values
 
 
 def show_no_connection():
@@ -113,16 +116,33 @@ class Gui(tk.Tk):
             application size in format &#39;heightxwidth&#39;
         &#34;&#34;&#34;
 
-        super().__init__()
+        super().__init__(className=title)
         self.title(title)
         self.geometry(size)
-        self.resizable(0, 0)
+        self.resizable(False, False)
+        self.iconphoto(False, tk.PhotoImage(file=self.get_icon()))
         self.form = Form(self)
         self.form.grid(row=1, column=0)
         self.search = Search(self)
         self.search.grid(row=0, column=0, pady=15)
         Image(self).grid(row=2, column=0, padx=50, sticky=&#39;W&#39;)
         Buttons(self).grid(row=3, column=0, sticky=&#39;E&#39;)
+
+    def get_icon(self):
+        &#34;&#34;&#34;Gets icon path.
+
+        According to type of installation picks method to get icon path. It can by obtained from module directory or
+        from `_MEIPASS` when application is built.
+
+        Returns
+        -------
+        Path
+            `pathlib.Path` object containing information about icon path
+        &#34;&#34;&#34;
+
+        directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
+        icon_path = Path(directory) / &#39;bookmeister.png&#39;
+        return icon_path
 
 
 class Search(tk.Frame):
@@ -1306,16 +1326,33 @@ name.</p>
             application size in format &#39;heightxwidth&#39;
         &#34;&#34;&#34;
 
-        super().__init__()
+        super().__init__(className=title)
         self.title(title)
         self.geometry(size)
-        self.resizable(0, 0)
+        self.resizable(False, False)
+        self.iconphoto(False, tk.PhotoImage(file=self.get_icon()))
         self.form = Form(self)
         self.form.grid(row=1, column=0)
         self.search = Search(self)
         self.search.grid(row=0, column=0, pady=15)
         Image(self).grid(row=2, column=0, padx=50, sticky=&#39;W&#39;)
-        Buttons(self).grid(row=3, column=0, sticky=&#39;E&#39;)</code></pre>
+        Buttons(self).grid(row=3, column=0, sticky=&#39;E&#39;)
+
+    def get_icon(self):
+        &#34;&#34;&#34;Gets icon path.
+
+        According to type of installation picks method to get icon path. It can by obtained from module directory or
+        from `_MEIPASS` when application is built.
+
+        Returns
+        -------
+        Path
+            `pathlib.Path` object containing information about icon path
+        &#34;&#34;&#34;
+
+        directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
+        icon_path = Path(directory) / &#39;bookmeister.png&#39;
+        return icon_path</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1323,6 +1360,42 @@ name.</p>
 <li>tkinter.Misc</li>
 <li>tkinter.Wm</li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="bookmeister.gui.Gui.get_icon"><code class="name flex">
+<span>def <span class="ident">get_icon</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets icon path.</p>
+<p>According to type of installation picks method to get icon path. It can by obtained from module directory or
+from <code>_MEIPASS</code> when application is built.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Path</code></dt>
+<dd><code>pathlib.Path</code> object containing information about icon path</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_icon(self):
+    &#34;&#34;&#34;Gets icon path.
+
+    According to type of installation picks method to get icon path. It can by obtained from module directory or
+    from `_MEIPASS` when application is built.
+
+    Returns
+    -------
+    Path
+        `pathlib.Path` object containing information about icon path
+    &#34;&#34;&#34;
+
+    directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
+    icon_path = Path(directory) / &#39;bookmeister.png&#39;
+    return icon_path</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="bookmeister.gui.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
@@ -1807,6 +1880,7 @@ record and fills form with its values.</p>
 <h1>Index</h1>
 <div class="toc">
 <ul>
+<li><a href="#gui">GUI</a></li>
 <li><a href="#license">License</a></li>
 </ul>
 </div>
@@ -1847,6 +1921,9 @@ record and fills form with its values.</p>
 </li>
 <li>
 <h4><code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></h4>
+<ul class="">
+<li><code><a title="bookmeister.gui.Gui.get_icon" href="#bookmeister.gui.Gui.get_icon">get_icon</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="bookmeister.gui.Image" href="#bookmeister.gui.Image">Image</a></code></h4>

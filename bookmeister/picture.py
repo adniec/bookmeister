@@ -1,4 +1,4 @@
-"""Picture
+"""#### Picture
 
 Module created for processing image data. It encodes or decodes information about picture which will be send or is
 received from database. Operations performed here ensure that data will be stored in proper form. Module responsible

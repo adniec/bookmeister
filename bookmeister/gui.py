@@ -1,4 +1,4 @@
-"""GUI
+"""#### GUI
 
 Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
 represented by classes `Search`, `Form`, `Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`

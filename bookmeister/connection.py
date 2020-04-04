@@ -1,4 +1,4 @@
-"""Connection
+"""#### Connection
 
 Module with `Database` class which gathers methods necessary to communicate with database REST API. It allows to add,
 search, update or delete records. To perform those operations `requests` module is used. Every method confirms its

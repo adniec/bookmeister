@@ -1,4 +1,4 @@
-"""Main
+"""#### Main
 
 Contains `main` function which creates application GUI and sets its size. It needs module sys to specify which platform
 is used and adjust application width.

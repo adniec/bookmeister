@@ -20,7 +20,7 @@
 <h1 class="title">Module <code>bookmeister.record</code></h1>
 </header>
 <section id="section-intro">
-<p>Record</p>
+<h4 id="record">Record</h4>
 <p>Module collecting functions, classes and methods needed for representation and validation of data which will be stored
 in database. <code>VALUES</code> holds information about database keys, example values and accepted length of each field. Function
 <a title="bookmeister.record.cast_values" href="#bookmeister.record.cast_values"><code>cast_values()</code></a> allows to change data types in dictionary (containing strings from <code>tkinter</code> entries) to those expected
@@ -38,7 +38,7 @@ SOFTWARE.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;Record
+<pre><code class="python">&#34;&#34;&#34;#### Record
 
 Module collecting functions, classes and methods needed for representation and validation of data which will be stored
 in database. `VALUES` holds information about database keys, example values and accepted length of each field. Function
@@ -57,8 +57,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 &#34;&#34;&#34;
 
-from dataclasses import dataclass
 from datetime import datetime
+
+from dataclasses import dataclass
 
 
 def cast_values(values):
@@ -857,6 +858,7 @@ to False and displays error.</p>
 <h1>Index</h1>
 <div class="toc">
 <ul>
+<li><a href="#record">Record</a></li>
 <li><a href="#license">License</a></li>
 </ul>
 </div>
