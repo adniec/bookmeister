@@ -1,10 +1,11 @@
 """#### Record
 
-Module collecting functions, classes and methods needed for representation and validation of data which will be stored
-in database. `VALUES` holds information about database keys, example values and accepted length of each field. Function
-`cast_values` allows to change data types in dictionary (containing strings from `tkinter` entries) to those expected
-in database. `Validator` class runs series of tests for data and notifies when values are incorrect. Modules used:
-`dataclassess` and `datetime`.
+Module collecting functions necessary to validate data from application form.
+Each of them raises `ValueError` when set value is not correct. Values are
+supposed to be stored in class `Record` which extends dictionary and maps
+proper validation function with expected database key. All database fields are
+added to `FIELDS`. `datetime` module is used to acquire current year during
+validation.
 
 
 #### License
@@ -19,235 +20,168 @@ SOFTWARE.
 
 from datetime import datetime
 
-from dataclasses import dataclass
+FIELDS = ('Title', 'Author', 'Type', 'Publisher', 'ISBN', 'Release',
+          'Language', 'Pages', 'Quantity', 'Price', 'Discount')
 
 
-def cast_values(values):
-    """Casts values to proper type.
+def check_length(text, minimum=1, maximum=100):
+    """Check if length of passed text is between set values.
 
     Parameters
     ----------
-    values : dict
-        dictionary with names of fields and their values, it can contain only one position or each of them
+    text : str
+        string to check if its length is in set range
+    minimum : int
+        minimum value for text length
+    maximum : int
+        maximum value for text length
 
-    Examples
-    --------
-    >>> query = {"Pages": "50", "Price": "12.95"}
-    >>> cast_values(query)
-    >>> query
-    {"Pages": 50, "Price": 12.95}
+    Raises
+    ------
+    ValueError
+        when text length is not in range
+    """
+    if not minimum <= len(text) <= maximum:
+        raise ValueError(f'Text length must be {minimum} to {maximum} '
+                         'characters.')
+
+
+def check_number(value, minimum=0, maximum=9999):
+    """Check if passed string is integer between set values.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is integer in set range
+    minimum : int
+        minimum value for accepted number
+    maximum : int
+        maximum value for accepted number
+
+    Raises
+    ------
+    ValueError
+        when value cannot be converted to `int` or is not in range
+    """
+    try:
+        number = int(value)
+    except ValueError:
+        raise ValueError('It must be integer.')
+
+    if not minimum <= number <= maximum:
+        raise ValueError(f'Number must be in range {minimum} to {maximum}.')
+
+
+def check_isbn(number):
+    """Check if ISBN-13 number is correct.
+
+    Check if passed value is digit and its length is equal to 13. Then run
+    calculations to compare result with checksum. If conditions are not met
+    raise ValueError.
+
+    Parameters
+    ----------
+    number : str
+        string to check if it is correct ISBN-13 number
+
+    Raises
+    ------
+    ValueError
+        when value for ISBN-13 is not correct
+    """
+    if number.isdigit() and len(number) == 13:
+        n = [int(char) for char in number]
+        control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+        if n[12] == control:
+            return
+    raise ValueError('Number must be valid ISBN-13 code.')
+
+
+def check_lang_code(code):
+    """Check if language code has two letters.
+
+    Parameters
+    ----------
+    code : str
+        string to check if it is correct language code
+
+    Raises
+    ------
+    ValueError
+        when value for language code is not correct
+    """
+    if not code.isalpha() or not len(code) == 2:
+        raise ValueError(f'Language code must be two characters. '
+                         'Check ISO 639-1 for more details.')
+
+
+def check_price(value):
+    """Check if passed string is price.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is int or float number with proper precision
+
+    Raises
+    ------
+    ValueError
+        when value contains letters or has too many digits after dot
+    """
+    price = value.split('.')
+    try:
+        if len(price) > 2:
+            raise ValueError
+        check_number(price[0])
+        check_number(price[1], 0, 99)
+    except IndexError:
+        pass
+    except ValueError:
+        raise ValueError('Price must be a number with maximum two digits after'
+                         ' dot, e.g. "125.75".')
+
+
+class Record(dict):
+    """
+    Creates customized dictionary.
+
+    It validates new elements if their keys are stored in `FIELDS`. Method
+    `check` binds proper function needed for validation. It extends `dict`.
     """
 
-    try:
-        values['Price'] = float(values['Price'])
-    except (KeyError, ValueError):
-        pass
+    def __setitem__(self, key, value):
+        """Extend `__setitem__` method by value check for `FIELDS` elements."""
+        if key in FIELDS and isinstance(value, str):
+            self.check(key, value)
+        super(Record, self).__setitem__(key, value)
 
-    for field in ('ISBN', 'Release', 'Pages', 'Quantity', 'Discount'):
+    @staticmethod
+    def check(key, value):
+        """Map functions which check field value with expected key."""
+        if key in ('Title', 'Author', 'Type', 'Publisher'):
+            check_length(value)
+        elif key in ('Release', 'Pages', 'Quantity', 'Discount'):
+            args = []
+            if key == 'Release':
+                args.extend((1800, datetime.now().year + 1))
+            if key == 'Discount':
+                args.extend((0, 99))
+            check_number(value, *args)
+        else:
+            {'ISBN': check_isbn,
+             'Language': check_lang_code,
+             'Price': check_price}[key](value)
+
+    def cast(self):
+        """Cast `Record` values to type expected in database."""
         try:
-            values[field] = int(values[field])
+            self['Price'] = float(self['Price'])
         except (KeyError, ValueError):
             pass
 
-
-@dataclass(frozen=True)
-class Record:
-    """Used to represent field stored in database. Covers key name, example value, accepted field min and max length."""
-
-    name: str
-    value: str
-    range_min: int
-    range_max: int
-
-    def is_length_correct(self, value):
-        """Specifies if value has acceptable length.
-
-        Parameters
-        ----------
-        value : str
-            text value which length will be checked
-
-        Returns
-        -------
-        bool
-            True if value length is between `range_min` and `range_max` of `Record` else False
-        """
-
-        return self.range_min <= len(value) <= self.range_max
-
-
-VALUES = (
-    Record('Title', 'From Russia, with Love', 1, 50),
-    Record('Author', 'Ian Fleming', 3, 50),
-    Record('Type', 'Thriller', 3, 20),
-    Record('Publisher', 'Thomas and Mercer', 1, 30),
-    Record('ISBN', '9781612185477', 13, 13),
-    Record('Release', '2012', 4, 4),
-    Record('Language', 'EN', 2, 2),
-    Record('Pages', '181', 1, 4),
-    Record('Quantity', '10', 1, 3),
-    Record('Price', '125.50', 1, 6),
-    Record('Discount', '0', 1, 2),
-)
-
-
-class Validator:
-    """
-    Responsible for validation of data.
-
-    ...
-
-    Attributes
-    ----------
-    is_correct : bool
-        information about validation process
-    numeric_fields : tuple
-        names of numeric fields
-
-    Methods
-    -------
-    warn(message, field=None)
-        displays error window with passed message and clears set field, if None clears whole form
-
-    Examples
-    --------
-    Check each value of all necessary fields in dictionary:
-    >>> values = {
-    ...     "Title": "From Russia, with Love",
-    ...     "Author": "Ian Fleming",
-    ...     "Type": "Thriller",
-    ...     "Publisher": "Thomas and Mercer",
-    ...     "ISBN": "9781612185477",
-    ...     "Release": "2012",
-    ...     "Language": "EN",
-    ...     "Pages": "181",
-    ...     "Quantity": "10",
-    ...     "Price": "125.5",
-    ...     "Discount": "0"
-    ... }
-    >>> validator = Validator(self.show_error)
-    >>> validtor.process(values)
-    >>> validator.is_correct
-    True
-
-    Check single field:
-    >>> validator = Validator(self.show_error)
-    >>> validtor.check_isbn("9781612185477")
-    >>> validator.is_correct
-    True
-    """
-
-    def __init__(self, show_error):
-        """
-        Parameters
-        ----------
-        show_error : method
-            method from Gui to display error and clear proper field
-        """
-
-        self.is_correct = True
-        self.numeric_fields = ('Pages', 'Quantity', 'Price', 'Discount')
-        self.warn = show_error
-
-    def process(self, data):
-        """Checks fields from dictionary with data.
-
-        Parameters
-        ----------
-        data : dict
-            contains all keys necessary in database record and their values to check
-        """
-
-        for record in VALUES:
-            self.check_length(record, data[record.name])
-        for key in self.numeric_fields:
-            self.check_number(data[key], key)
-        self.check_isbn(data['ISBN'])
-        self.check_release(data['Release'])
-
-    def check_release(self, year):
-        """Checks if value for field "Release" is correct.
-
-        Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
-        to False and displays error.
-
-        Parameters
-        ----------
-        year : str
-            string to check if it is between accepted values
-        """
-
-        min = 1800
-        max = datetime.now().year + 1
-        try:
-            if min <= int(year) <= max: return
-        except ValueError:
-            pass
-        self.is_correct = False
-        self.warn(f'Field "Release" must be a number between {min} and {max}.', 'Release')
-
-    def check_isbn(self, number):
-        """Checks if value for field "ISBN" is correct.
-
-        Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
-        checksum. If conditions are not met sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        number : str
-            string to check if it is correct ISBN-13 number
-        """
-
-        if number.isdigit() and len(number) == 13:
-            n = [int(x) for x in number]
-            control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
-                    n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
-            if n[12] == control: return
-        self.is_correct = False
-        self.warn(f'Wrong value for ISBN-13 number.', 'ISBN')
-
-    def check_number(self, value, field):
-        """Checks if value for passed field is correct.
-
-        Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        value : str
-            string to check if it can be converted to float
-        field : str
-            name of field which is checked
-        """
-
-        try:
-            float(value)
-        except ValueError:
-            self.is_correct = False
-            self.warn(f'Field "{field}" must be a number.', field)
-
-    def check_length(self, record, value):
-        """Checks if passed value has acceptable length for set record.
-
-        If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        record : Record
-            class representing record with its name, example value and min, max accepted length
-        value : str
-            string to check if it has proper length
-        """
-
-        is_correct = record.is_length_correct(value)
-        if not is_correct:
-            text = self.get_length_text(record.range_min, record.range_max)
-            self.warn(f'Length for field "{record.name}" must be {text} signs, e.g. {record.value}', record.name)
-            self.is_correct = False
-
-    @staticmethod
-    def get_length_text(min: int, max: int) -> str:
-        """Returns text according to min and max value."""
-
-        if min == max:
-            return f'exact {min}'
-        return f'between {min} and {max}'
+        for field in ('ISBN', 'Release', 'Pages', 'Quantity', 'Discount'):
+            try:
+                self[field] = int(self[field])
+            except (KeyError, ValueError):
+                pass
