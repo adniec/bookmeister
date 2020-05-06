@@ -1,6 +1,7 @@
 import pytest
 
 from bookmeister.connection import Database
+from bookmeister.gui import Buttons
 
 RECORDS = (
     {
@@ -133,3 +134,84 @@ class TestDatabase:
         for number in ids:
             result = Database().search({'_id': number})
             assert result == []
+
+
+@pytest.fixture
+def app(record, mocker):
+    mocker.patch('bookmeister.gui.tk.Frame.__init__', return_value=None)
+    mocker.patch('bookmeister.gui.tk.Button')
+
+    mocked = mocker.Mock()
+    mocked.form.get.return_value = record
+
+    return Buttons(mocked)
+
+
+@pytest.mark.live_database
+@pytest.mark.dependency(depends=['test_initialization'])
+class TestDatabaseFromApp:
+
+    @pytest.mark.run(order=8)
+    @pytest.mark.parametrize('record', RECORDS)
+    def test_add(self, record, app, mocker):
+        mocked = mocker.patch('bookmeister.gui.msg.showinfo')
+        app.add()
+        mocked.assert_called_once_with(
+            'Done', 'Record successfully saved to database.')
+
+        result_spy = mocker.spy(Database, 'search')
+        app.search()
+        assert record.items() <= result_spy.spy_return[0].items()
+
+    @pytest.mark.run(order=9)
+    @pytest.mark.parametrize('record', ({'Publisher': 'Tester'},))
+    def test_search(self, app, mocker):
+        result_spy = mocker.spy(Database, 'search')
+        app.search()
+        assert len(result_spy.spy_return) == len(RECORDS)
+
+    @pytest.mark.run(order=10)
+    @pytest.mark.parametrize('record', ({'Publisher': 'Tester' * 100},))
+    def test_not_found(self, app, mocker):
+        result_spy = mocker.spy(Database, 'search')
+        app.search()
+        assert result_spy.spy_return == []
+
+    @pytest.mark.run(order=11)
+    @pytest.mark.parametrize('record', RECORDS)
+    def test_update(self, record, app, mocker):
+        result_spy = mocker.spy(Database, 'search')
+        app.search()
+
+        title = 'Title successfully changed. Test passed.'
+        record['Title'] = title
+
+        mocked = mocker.patch.object(app, 'menu')
+        mocked.form.get.return_value = record
+        mocked.search.box.get.return_value = result_spy.spy_return[0]['_id']
+
+        mocked_window = mocker.patch('bookmeister.gui.msg.showinfo')
+        app.revise()
+        mocked_window.assert_called_once_with(
+            'Done', 'Record successfully saved to database.')
+
+        app.search()
+        assert result_spy.spy_return[0]['Title'] == title
+
+    @pytest.mark.run(order=12)
+    @pytest.mark.parametrize('record', RECORDS)
+    def test_delete(self, record, app, mocker):
+        result_spy = mocker.spy(Database, 'search')
+        app.search()
+
+        mocked = mocker.patch.object(app, 'menu')
+        mocked.search.box.get.return_value = result_spy.spy_return[0]['_id']
+
+        mocked_window = mocker.patch('bookmeister.gui.msg.showinfo')
+        app.delete()
+        mocked_window.assert_called_once_with(
+            'Done', 'Record successfully removed from database.')
+
+        mocked.form.get.return_value = record
+        app.search()
+        assert result_spy.spy_return == []
