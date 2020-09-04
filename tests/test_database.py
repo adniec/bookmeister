@@ -5,7 +5,7 @@ from bookmeister.gui import Buttons
 
 RECORDS = (
     {
-        'Title': 'Test me.',
+        'Title': 'Test me',
         'Author': 'Mr Test',
         'Type': 'Test',
         'Publisher': 'Tester',
@@ -19,7 +19,7 @@ RECORDS = (
         'Hardcover': False
     },
     {
-        'Title': 'Dancing with tests.',
+        'Title': 'Dancing with tests',
         'Author': 'Tes Testy',
         'Type': 'Novel',
         'Publisher': 'Tester',
@@ -33,7 +33,7 @@ RECORDS = (
         'Hardcover': False
     },
     {
-        'Title': 'Testing madness.',
+        'Title': 'Testing madness',
         'Author': 'Test Tested',
         'Type': 'Criminal',
         'Publisher': 'Tester',
@@ -47,7 +47,7 @@ RECORDS = (
         'Hardcover': True
     },
     {
-        'Title': 'Too fast to test.',
+        'Title': 'Too fast to test',
         'Author': 'T. Tested',
         'Type': 'Biography',
         'Publisher': 'Tester',
@@ -82,15 +82,16 @@ def ids():
     return []
 
 
-@pytest.mark.live_database
+@pytest.mark.database
 @pytest.mark.dependency
 @pytest.mark.run(order=1)
 def test_initialization():
     database = Database()
-    assert database.url == "https://bookstore-5217.restdb.io/rest/books"
+    assert database.url == 'https://bookstore-5217.restdb.io'
+    assert database.collection == '/rest/books'
 
 
-@pytest.mark.live_database
+@pytest.mark.database
 @pytest.mark.dependency(depends=['test_initialization'])
 class TestDatabase:
 
@@ -101,10 +102,10 @@ class TestDatabase:
 
     @pytest.mark.run(order=3)
     @pytest.mark.parametrize('query', (
-            {'Title': 'Test me.', 'Type': 'Test', 'Quantity': 123},
-            {'Title': 'Dancing with tests.'},
-            {'Title': 'Testing madness.', 'Type': 'Criminal', 'Release': 1897},
-            {'Title': 'Too fast to test.', 'Type': 'Biography', 'Discount': 0},
+            {'Title': 'Test me', 'Type': 'Test', 'Quantity': 123},
+            {'Title': 'Dancing with tests'},
+            {'Title': 'Testing madness', 'Type': 'Criminal', 'Release': 1897},
+            {'Title': 'Too fast to test', 'Type': 'Biography', 'Discount': 0},
             {'Type': 'Thriller', 'Pages': 152, 'Quantity': 10, 'Price': 12.99},
     ))
     def test_database_search(self, query, ids):
@@ -116,13 +117,13 @@ class TestDatabase:
     @pytest.mark.run(order=4)
     def test_database_update(self, ids):
         for number in ids:
-            assert Database().update(number, {'Title': 'This is a test.'})
+            assert Database().update(number, {'Title': 'This is a test'})
 
     @pytest.mark.run(order=5)
     def test_database_are_updated(self, ids):
         for number in ids:
             result = Database().search({'_id': number})
-            assert result[0]['Title'] == 'This is a test.'
+            assert result[0]['Title'] == 'This is a test'
 
     @pytest.mark.run(order=6)
     def test_database_delete(self, ids):
@@ -147,7 +148,7 @@ def app(record, mocker):
     return Buttons(mocked)
 
 
-@pytest.mark.live_database
+@pytest.mark.database
 @pytest.mark.dependency(depends=['test_initialization'])
 class TestDatabaseFromApp:
 

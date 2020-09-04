@@ -1,12 +1,12 @@
 """#### GUI
 
-Module gathers all functions, classes and methods necessary to create GUI.
-Its parts are divided for separate blocks represented by classes `Search`,
-`Form`, `Buttons` and `Image` where each of them extends `tkinter.Frame`.
-`Searchbox` is extended `tkinter.Combobox` class to application needs. `Gui`
-connects each part and places them in main window which will be displayed.
-Modules used: `pathlib`, `sys` and `tkinter` with `filedialog`, `messagebox`,
-`ttk`.
+Module gathers all functions, classes and methods necessary to create GUI. Its
+parts are divided for separate blocks represented by classes `Search`, `Form`,
+`Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`
+is extended `tkinter.Combobox` class to application needs. `Gui` connects each
+part and places them in main window which will be displayed. Modules used:
+`pathlib`, `sys`, `webbrowser`, `PIL` and `tkinter` with `filedialog`,
+`messagebox`, `ttk`.
 
 
 #### License
@@ -21,14 +21,16 @@ SOFTWARE.
 
 from pathlib import Path
 import sys
-
 import tkinter as tk
 from tkinter.filedialog import askopenfile
 import tkinter.messagebox as msg
 import tkinter.ttk as ttk
+import webbrowser
+
+import PIL
+import PIL.Image
 
 from bookmeister.connection import Database
-from bookmeister.picture import Picture
 from bookmeister.record import FIELDS, Record
 
 
@@ -190,7 +192,7 @@ class Searchbox(ttk.Combobox):
         self.variables = variables
         self.bind('<<ComboboxSelected>>', self.do_on_select)
 
-    def assing_values(self, values):
+    def assign_values(self, values):
         """Fill searchbox with values.
 
         Clear previously loaded elements. For each record in passed values
@@ -221,8 +223,7 @@ class Searchbox(ttk.Combobox):
         Parameters
         ----------
         image : str
-            string representing image data converted with `bookmeister.picture`
-             module
+            string representing image id
         """
         self.values[ttk.Combobox.get(self)]['Cover'] = image
 
@@ -232,7 +233,7 @@ class Searchbox(ttk.Combobox):
             try:
                 self.variables[key].set(
                     self.values[ttk.Combobox.get(self)][key])
-            except KeyError:
+            except KeyError:  # pragma: no cover
                 pass
 
     def get(self):
@@ -244,7 +245,7 @@ class Searchbox(ttk.Combobox):
                                    'please select record first.')
 
     def get_image(self):
-        """Return image data string when it exists else None."""
+        """Return image id when it exists else None."""
         try:
             return self.values[ttk.Combobox.get(self)]['Cover']
         except KeyError:
@@ -389,27 +390,53 @@ class Image(tk.Frame):
         if selected:
             path = askopenfile(initialdir=Path.home())
             if path:
-                image = Picture(path.name).get()
-                if image:
-                    if Database().update(selected, {'Cover': image}):
-                        self.menu.search.box.assign_image(image)
-                        msg.showinfo('Done',
-                                     'Record successfully saved to database.')
-                    else:
-                        show_no_connection()
+                if self.verify(path.name):
+                    image_id = Database().upload_image(path.name)
+                    if image_id:
+                        if Database().update(selected, {'Cover': image_id}):
+                            self.menu.search.box.assign_image(image_id)
+                            msg.showinfo('Done',
+                                         'Image successfully saved.')
+                        else:
+                            show_no_connection()
                 else:
                     msg.showerror('Error', 'Wrong image file format.')
 
     def view_image(self):
         """Display selected record image.
 
-        When record is selected in `Searchbox` open its image with
-        `bookmeister.picture` module. If operation failed display error.
+        When record is selected in `Searchbox` open its image in browser. If
+        operation failed display error.
         """
         if self.menu.search.box.get():
-            if not Picture.show(self.menu.search.box.get_image()):
-                msg.showerror('Error', 'Could not open image. File may be '
-                                       'corrupted or not uploaded yet.')
+            picture = self.menu.search.box.get_image()
+            if picture:
+                self.open_image(picture)
+            else:
+                msg.showerror('Error', 'There is no image uploaded yet.')
+
+    @staticmethod
+    def open_image(link):
+        """Open image from database media archive in browser.
+
+        Parameters
+        ----------
+        link : str
+            identification number of image from database media archive
+        """
+        url = Database().url + '/media/' + link
+        webbrowser.open(url, new=True)
+
+    @staticmethod
+    def verify(path):
+        """Return True if under set path there is valid image else False."""
+        try:
+            image = PIL.Image.open(path)
+            image.verify()
+            image.close()
+            return True
+        except (FileNotFoundError, PIL.UnidentifiedImageError):
+            return False
 
 
 class Buttons(tk.Frame):
@@ -488,7 +515,7 @@ class Buttons(tk.Frame):
             if result is None:
                 show_no_connection()
             else:
-                self.menu.search.box.assing_values(result)
+                self.menu.search.box.assign_values(result)
 
     def revise(self):
         """Update record in database.

@@ -53,3 +53,16 @@ def test_no_connection(method, args, mocker):
     mocked = mocker.patch('requests.request')
     mocked.side_effect = ConnectionError
     assert not getattr(Database(), method)(*args)
+
+
+@pytest.mark.parametrize('message,result', (
+        ('{"msg":"OK","uploadid":"b7ddaa0ed","ids":["5fc00c0d"]}', '5fc00c0d'),
+        ('{"msg":"OK","uploadid":"a2fg99mg8","ids":["j8ar24im"]}', 'j8ar24im'),
+        ('[]', None)
+))
+def test_database_upload_image(message, result, mocker):
+    mocker.patch('builtins.open')
+    mocked = mocker.patch('requests.request')
+    mocked.return_value.text = message
+    assert Database().upload_image('/home/user') == result
+

@@ -1,7 +1,7 @@
 """#### Main
 
-Contains `main` function which creates application GUI and sets its size. It needs module sys to specify which platform
-is used and adjust application width.
+Contain `main` function which create application GUI and set its size. Module
+`sys` is needed to specify which platform is used and adjust application width.
 
 
 #### License
@@ -20,10 +20,10 @@ from bookmeister.gui import Gui
 
 
 def main():
-    """Sets GUI width according to used platform and runs it."""
-
+    """Set GUI width according to used platform and run it."""
     width = '450' if platform == 'win32' else '600'
     Gui('Bookstore Manager', f'{width}x470').mainloop()
 
 
-if __name__ == '__main__': main()
+if __name__ == '__main__':
+    main()

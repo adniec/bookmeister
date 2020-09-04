@@ -48,7 +48,7 @@ def test_get_icon_path():
     path = gui.Gui.get_icon()
     assert isinstance(path, pathlib.PurePath)
 
-
+@pytest.mark.gui_init
 @pytest.mark.parametrize('frame', (
         'bookmeister.gui.Form',
         'bookmeister.gui.Search',
@@ -184,6 +184,64 @@ def test_form_frame_clear(parameter, mocker):
     gui.Form.clear(mocked)
     mocked.menu.search.box.clear.assert_called_once()
     mock.set.assert_called_with(parameter)
+
+
+def test_add_image(mocker):
+    mocker.patch('bookmeister.gui.askopenfile')
+    mocker.patch('bookmeister.connection.Database.upload_image')
+    mocker.patch('bookmeister.connection.Database.update')
+    mocked = mocker.patch('tkinter.messagebox.showinfo')
+    gui.Image.add_image(mocker.MagicMock())
+    mocked.assert_called_once()
+
+
+def test_add_image_no_connection(mocker):
+    mocker.patch('bookmeister.gui.askopenfile')
+    mocked = mocker.patch('tkinter.messagebox.showerror')
+    mock = mocker.MagicMock()
+    mock.verify.return_value = False
+    gui.Image.add_image(mock)
+    mocked.assert_called_once()
+
+
+def test_add_image_wrong_format(mocker):
+    mocker.patch('bookmeister.gui.askopenfile')
+    mocker.patch('bookmeister.connection.Database.upload_image')
+    mocked = mocker.patch('bookmeister.gui.show_no_connection')
+    mock = mocker.patch('bookmeister.connection.Database.update')
+    mock.return_value = None
+    gui.Image.add_image(mocker.MagicMock())
+    mocked.assert_called_once()
+
+
+
+def test_view_image(mocker):
+    mocked = mocker.MagicMock()
+    mocked.menu.search.box.get_image.return_value = True
+    gui.Image.view_image(mocked)
+    mocked.open_image.assert_called_once()
+
+
+def test_view_no_image(mocker):
+    mocked = mocker.patch('tkinter.messagebox.showerror')
+    mock = mocker.MagicMock()
+    mock.menu.search.box.get_image.return_value = False
+    gui.Image.view_image(mock)
+    mocked.assert_called_once()
+
+
+def test_open_image(mocker):
+    mocked = mocker.patch('webbrowser.open')
+    gui.Image.open_image('test')
+    mocked.assert_called_once()
+
+
+@pytest.mark.parametrize('name,result', (
+        ('bookmeister.png', True),
+        ('test.png', False),
+))
+def test_image_verify(name, result):
+    assert gui.Image.verify('bookmeister/' + name) == result
 
 
 def test_buttons_process_wrong_data(mocker):

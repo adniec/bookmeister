@@ -31,10 +31,10 @@ def check_length(text, minimum=1, maximum=100):
     ----------
     text : str
         string to check if its length is in set range
-    minimum : int
-        minimum value for text length
-    maximum : int
-        maximum value for text length
+    minimum : int, optional
+        minimum value for text length, default is 1
+    maximum : int, optional
+        maximum value for text length, default is 100
 
     Raises
     ------
@@ -53,10 +53,10 @@ def check_number(value, minimum=0, maximum=9999):
     ----------
     value : str
         string to check if it is integer in set range
-    minimum : int
-        minimum value for accepted number
-    maximum : int
-        maximum value for accepted number
+    minimum : int, optional
+        minimum value for accepted number, default is 0
+    maximum : int, optional
+        maximum value for accepted number, default is 9999
 
     Raises
     ------
@@ -112,7 +112,7 @@ def check_lang_code(code):
         when value for language code is not correct
     """
     if not code.isalpha() or not len(code) == 2:
-        raise ValueError(f'Language code must be two characters. '
+        raise ValueError('Language code must be two characters. '
                          'Check ISO 639-1 for more details.')
 
 
@@ -144,7 +144,7 @@ def check_price(value):
 
 class Record(dict):
     """
-    Creates customized dictionary.
+    Create customized dictionary.
 
     It validates new elements if their keys are stored in `FIELDS`. Method
     `check` binds proper function needed for validation. It extends `dict`.

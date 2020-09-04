@@ -1,9 +1,10 @@
 """#### Connection
 
-Module with `Database` class which gathers methods necessary to communicate with database REST API. It allows to add,
-search, update or delete records. To perform those operations `requests` module is used. Every method confirms its
-result by returning True or expected data. In case of error False or None is returned. Values received or sent to
-database are converted with `json` module.
+Module with `Database` class which gathers methods necessary to communicate
+with database REST API. It allows to add, search, update or delete records. To
+perform those operations `requests` module is used. Every method confirms its
+result by returning True or expected data. In case of error False or None is
+returned. Values received or sent to database are converted with `json` module.
 
 
 #### License
@@ -31,20 +32,24 @@ class Database:
     ----------
     url : str
         database address
+    collection : str
+        name of collection in database
     headers : dict
         dictionary containing information send with request to database
     """
 
     def __init__(self):
-        self.url = "https://bookstore-5217.restdb.io/rest/books"
+        """Initialize basic settings needed for communication with database."""
+        self.url = 'https://bookstore-5217.restdb.io'
+        self.collection = '/rest/books'
         self.headers = {
-            'content-type': "application/json",
-            'x-apikey': "5e5f9cf028222370f14d4ece",
-            'cache-control': "no-cache"
+            'content-type': 'application/json',
+            'x-apikey': '5e5f9cf028222370f14d4ece',
+            'cache-control': 'no-cache',
         }
 
     def add(self, values):
-        """Sends values to database.
+        """Send values to database.
 
         Parameters
         ----------
@@ -56,20 +61,25 @@ class Database:
         bool
             True when record added to database else False
         """
-
         try:
-            response = requests.request("POST", self.url, data=dumps(values), headers=self.headers)
+            response = requests.request(
+                'POST',
+                self.url + self.collection,
+                data=dumps(values),
+                headers=self.headers
+            )
             return '_id' in response.text
         except requests.exceptions.ConnectionError:
             return False
 
     def search(self, parameters):
-        """Search for records matching parameters in database.
+        """Search for records matching `parameters` in database.
 
         Parameters
         ----------
         parameters : dict
-            dictionary with names of fields and values which will be searched in database
+            dictionary with names of fields and values which will be searched
+            in database
 
         Returns
         -------
@@ -78,20 +88,23 @@ class Database:
         None
             when connection error occurs
         """
-
         query = f'?q={dumps(parameters)}'
         try:
-            response = requests.request("GET", self.url + query, headers=self.headers)
+            response = requests.request(
+                'GET',
+                self.url + self.collection + query,
+                headers=self.headers
+            )
             return loads(response.text)
         except requests.exceptions.ConnectionError:
             return None
 
-    def delete(self, id):
-        """Removes record from database.
+    def delete(self, record_id):
+        """Remove record from database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to remove
 
         Returns
@@ -99,19 +112,22 @@ class Database:
         bool
             True when record removed from database else False
         """
-
         try:
-            response = requests.request("DELETE", self.url + '/' + id, headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                'DELETE',
+                self.url + self.collection + '/' + record_id,
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
             return False
 
-    def update(self, id, values):
-        """Updates record in database.
+    def update(self, record_id, values):
+        """Update record in database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to update
         values : dict
             dictionary with names of fields and values to change in database
@@ -121,9 +137,41 @@ class Database:
         bool
             True when record modified in database else False
         """
-
         try:
-            response = requests.request("PATCH", self.url + '/' + id, data=dumps(values), headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                'PATCH',
+                self.url + self.collection + '/' + record_id,
+                data=dumps(values),
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
             return False
+
+    def upload_image(self, path):
+        """Upload image to database media archive.
+
+        Parameters
+        ----------
+        path : str
+            image path
+
+        Returns
+        -------
+        str
+            id of uploaded image
+        None
+            when connection error occurs or no id in response
+        """
+        headers = self.headers.copy()
+        headers.pop('content-type', None)
+        try:
+            response = requests.request(
+                'POST',
+                self.url + '/media',
+                files={'image': open(path, 'rb')},
+                headers=headers
+            )
+            return loads(response.text)["ids"][0]
+        except (TypeError, KeyError, requests.exceptions.ConnectionError):
+            return None
