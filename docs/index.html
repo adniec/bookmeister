@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.8.1" />
 <title>bookmeister API documentation</title>
 <meta name="description" content="bookmeister …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>bookmeister</code></h1>
+<h1 class="title">Package <code>bookmeister</code></h1>
 </header>
 <section id="section-intro">
 <h1 id="bookmeister">bookmeister</h1>
@@ -25,21 +25,21 @@
 responsible for connection with database <strong>REST API</strong>. It allows to store, load, update and delete records from books
 collection. Main goal of this part was to design simple and <strong>intuitive GUI</strong> for bookstore <strong>employees</strong>. Description below
 walks through its features.</p>
-<p><img alt="Menu" src="https://raw.githubusercontent.com/ethru/bookmeister/master/data/menu.png"></p>
+<p><img alt="Menu" src="https://raw.githubusercontent.com/ethru/bookmeister/master/data/menu.gif"></p>
 <h2 id="features">Features</h2>
 <ul>
 <li>form validation before sending values to <a href="https://restdb.io/">database</a></li>
 <li>search by one or many parameters</li>
 <li>easy edit of data: form autofill when record chosen from search results</li>
-<li>upload / download (view) of book cover</li>
+<li>upload / view of book cover</li>
 <li>display of notification after performing action</li>
 </ul>
 <h2 id="installation">Installation</h2>
-<pre><code>$ git clone &lt;https://github.com/ethru/bookmeister.git&gt;
+<pre><code>$ git clone https://github.com/ethru/bookmeister.git
 $ pip install bookmeister/.
 </code></pre>
 <h2 id="build">Build</h2>
-<pre><code>$ git clone &lt;https://github.com/ethru/bookmeister.git&gt;
+<pre><code>$ git clone https://github.com/ethru/bookmeister.git
 $ cd bookmeister
 $ pip install -r requirements.txt
 $ python build.py
@@ -114,39 +114,26 @@ fields listed below have additional conditions:</p>
 <li>Check <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/requirements.txt">requirements.txt</a> file to see used
 modules and their version.</li>
 </ul>
-<h5 id="author-adrian-niec">Author: Adrian Niec</h5>
-<h5 id="this-project-is-under-the-mit-license">This project is under the MIT <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/LICENSE">License</a></h5>
+<h5 id="running-tests">Running tests</h5>
+<ul>
+<li>Tests are included in <code>tests</code> directory.</li>
+<li>Configuration file is available <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/tox.ini">here</a>.</li>
+<li>To run them use: <code>$ tox</code></li>
+<li><a href="https://ethru.github.io/bookmeister/htmlcov/index.html">Click</a> to see coverage report.</li>
+</ul>
+<h5 id="author">Author</h5>
+<p>Adrian Niec</p>
+<h5 id="license">License</h5>
+<p>This project is under the MIT <a href="https://raw.githubusercontent.com/ethru/bookmeister/master/LICENSE">License</a></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/__init__.py#L0-L2" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-.. include:: ../README.md
-&#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34;.. include:: ../README.md&#34;&#34;&#34;
 
-__version__ = &#39;2020.3.20&#39;</code></pre>
+__version__ = &#39;2020.9.4&#39;</code></pre>
 </details>
-</section>
-<section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="bookmeister.connection" href="connection.html">bookmeister.connection</a></code></dt>
-<dd>
-<section class="desc"><p>Connection …</p></section>
-</dd>
-<dt><code class="name"><a title="bookmeister.gui" href="gui.html">bookmeister.gui</a></code></dt>
-<dd>
-<section class="desc"><p>GUI …</p></section>
-</dd>
-<dt><code class="name"><a title="bookmeister.picture" href="picture.html">bookmeister.picture</a></code></dt>
-<dd>
-<section class="desc"><p>Picture …</p></section>
-</dd>
-<dt><code class="name"><a title="bookmeister.record" href="record.html">bookmeister.record</a></code></dt>
-<dd>
-<section class="desc"><p>Record …</p></section>
-</dd>
-</dl>
 </section>
 <section>
 </section>
@@ -156,6 +143,7 @@ __version__ = &#39;2020.3.20&#39;</code></pre>
 </section>
 </article>
 <nav id="sidebar">
+<header><img src="https://raw.githubusercontent.com/ethru/pdoc3-mdnotes/develop/pdoc3_mdnotes/icons/mdnotes.png" alt=""></header>
 <h1>Index</h1>
 <div class="toc">
 <ul>
@@ -168,8 +156,9 @@ __version__ = &#39;2020.3.20&#39;</code></pre>
 <li><a href="#project-information">Project Information</a><ul>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#requirements">Requirements</a></li>
-<li><a href="#author-adrian-niec">Author: Adrian Niec</a></li>
-<li><a href="#this-project-is-under-the-mit-license">This project is under the MIT License</a></li>
+<li><a href="#running-tests">Running tests</a></li>
+<li><a href="#author">Author</a></li>
+<li><a href="#license">License</a></li>
 </ul>
 </li>
 </ul>
@@ -181,7 +170,6 @@ __version__ = &#39;2020.3.20&#39;</code></pre>
 <ul>
 <li><code><a title="bookmeister.connection" href="connection.html">bookmeister.connection</a></code></li>
 <li><code><a title="bookmeister.gui" href="gui.html">bookmeister.gui</a></code></li>
-<li><code><a title="bookmeister.picture" href="picture.html">bookmeister.picture</a></code></li>
 <li><code><a title="bookmeister.record" href="record.html">bookmeister.record</a></code></li>
 </ul>
 </li>
@@ -189,7 +177,7 @@ __version__ = &#39;2020.3.20&#39;</code></pre>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

@@ -26,7 +26,7 @@ setup(
     platforms=['any'],
     install_requires=requirements,
     python_requires='>=3.7',
-    classifiers=['Development Status :: 4 - Beta',
+    classifiers=['Development Status :: 5 - Production/Stable',
                  'Intended Audience :: End Users/Desktop',
                  'License :: OSI Approved :: MIT License',
                  'Operating System :: OS Independent',

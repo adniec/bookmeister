@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.8.1" />
 <title>bookmeister.gui API documentation</title>
 <meta name="description" content="GUI …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -21,10 +21,13 @@
 </header>
 <section id="section-intro">
 <h4 id="gui">GUI</h4>
-<p>Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
-represented by classes <a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a>, <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a>, <a title="bookmeister.gui.Buttons" href="#bookmeister.gui.Buttons"><code>Buttons</code></a> and <a title="bookmeister.gui.Image" href="#bookmeister.gui.Image"><code>Image</code></a> where each of them extends <code>tkinter.Frame</code>. <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a>
-is extended <code>tkinter.Combobox</code> class to application needs. <a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a> connects each part and places them in main window
-which will be displayed. Modules used: <code>pathlib</code>, <code>sys</code> and <code>tkinter</code> with <code>ttk</code>, <code>messagebox</code>, <code>filedialog</code>.</p>
+<p>Module gathers all functions, classes and methods necessary to create GUI. Its
+parts are divided for separate blocks represented by classes <code><a title="bookmeister.gui.Search" href="#bookmeister.gui.Search">Search</a></code>, <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code>,
+<code><a title="bookmeister.gui.Buttons" href="#bookmeister.gui.Buttons">Buttons</a></code> and <code><a title="bookmeister.gui.Image" href="#bookmeister.gui.Image">Image</a></code> where each of them extends <code>tkinter.Frame</code>. <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code>
+is extended <code>tkinter.Combobox</code> class to application needs. <code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code> connects each
+part and places them in main window which will be displayed. Modules used:
+<code>pathlib</code>, <code>sys</code>, <code>webbrowser</code>, <code>PIL</code> and <code>tkinter</code> with <code>filedialog</code>,
+<code>messagebox</code>, <code>ttk</code>.</p>
 <h4 id="license">License</h4>
 <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -36,13 +39,17 @@ SOFTWARE.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L0-L567" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;#### GUI
 
-Module gathers all functions, classes and methods necessary to create GUI. Its parts are divided for separate blocks
-represented by classes `Search`, `Form`, `Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`
-is extended `tkinter.Combobox` class to application needs. `Gui` connects each part and places them in main window
-which will be displayed. Modules used: `pathlib`, `sys` and `tkinter` with `ttk`, `messagebox`, `filedialog`.
+Module gathers all functions, classes and methods necessary to create GUI. Its
+parts are divided for separate blocks represented by classes `Search`, `Form`,
+`Buttons` and `Image` where each of them extends `tkinter.Frame`. `Searchbox`
+is extended `tkinter.Combobox` class to application needs. `Gui` connects each
+part and places them in main window which will be displayed. Modules used:
+`pathlib`, `sys`, `webbrowser`, `PIL` and `tkinter` with `filedialog`,
+`messagebox`, `ttk`.
 
 
 #### License
@@ -57,25 +64,27 @@ SOFTWARE.
 
 from pathlib import Path
 import sys
-
 import tkinter as tk
 from tkinter.filedialog import askopenfile
-import tkinter.ttk as ttk
 import tkinter.messagebox as msg
+import tkinter.ttk as ttk
+import webbrowser
+
+import PIL
+import PIL.Image
 
 from bookmeister.connection import Database
-from bookmeister.picture import Picture
-from bookmeister.record import VALUES, Validator, cast_values
+from bookmeister.record import FIELDS, Record
 
 
 def show_no_connection():
-    &#34;&#34;&#34;Displays error message about connection problem.&#34;&#34;&#34;
-
-    msg.showerror(&#39;Error&#39;, &#39;Could not perform operation. It may be connection with database problem. Try again later.&#39;)
+    &#34;&#34;&#34;Display error message about connection problem.&#34;&#34;&#34;
+    msg.showerror(&#39;Error&#39;, &#39;Could not perform operation. It may be connection &#39;
+                           &#39;with database problem. Try again later.&#39;)
 
 
 def create_label(container, message, row, column):
-    &#34;&#34;&#34;Displays text in set `tkinter` container.
+    &#34;&#34;&#34;Display text in set `tkinter` container.
 
     Parameters
     ----------
@@ -84,17 +93,19 @@ def create_label(container, message, row, column):
     message : str
         text displayed
     row : int
-        row used with grid manager, specifies place where label will be displayed
+        row used with grid manager (place where label will be displayed)
     column : int
-        column used with grid manager, specifies place where label will be displayed
+        column used with grid manager (place where label will be displayed)
     &#34;&#34;&#34;
-
-    tk.Label(container, text=message, font=&#39;none 10&#39;).grid(row=row, column=column, padx=12, pady=2, sticky=&#39;W&#39;)
+    tk.Label(container, text=message, font=&#39;none 10&#39;).grid(
+        row=row, column=column, padx=12, pady=2, sticky=&#39;W&#39;)
 
 
 class Gui(tk.Tk):
     &#34;&#34;&#34;
-    Configures GUI. Places individual widgets and allows their communication. Extends `tk.Tk`.
+    Configure GUI.
+
+    Place individual widgets and allow their communication. Extend `tk.Tk`.
 
     ...
 
@@ -107,7 +118,8 @@ class Gui(tk.Tk):
     &#34;&#34;&#34;
 
     def __init__(self, title, size):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Set window properties and fill it with elements.
+
         Parameters
         ----------
         title : str
@@ -115,7 +127,6 @@ class Gui(tk.Tk):
         size : str
             application size in format &#39;heightxwidth&#39;
         &#34;&#34;&#34;
-
         super().__init__(className=title)
         self.title(title)
         self.geometry(size)
@@ -128,18 +139,39 @@ class Gui(tk.Tk):
         Image(self).grid(row=2, column=0, padx=50, sticky=&#39;W&#39;)
         Buttons(self).grid(row=3, column=0, sticky=&#39;E&#39;)
 
-    def get_icon(self):
-        &#34;&#34;&#34;Gets icon path.
+    def show_error(self, message, field=None):
+        &#34;&#34;&#34;Display error window.
 
-        According to type of installation picks method to get icon path. It can by obtained from module directory or
-        from `_MEIPASS` when application is built.
+        When field is specified incorrect form value from that field is
+        cleared. Otherwise clear whole form.
+
+        Parameters
+        ----------
+        message : str
+            text displayed in error window
+        field : str or None, optional
+            name of field where value will be cleared, default None: whole form
+        &#34;&#34;&#34;
+        if field is None:
+            self.form.clear()
+        else:
+            self.form.variables[field].set(&#39;&#39;)
+            message = f&#39;Wrong value for field &#34;{field}&#34;. {message}&#39;
+        msg.showerror(&#39;Error&#39;, message)
+
+    @staticmethod
+    def get_icon():
+        &#34;&#34;&#34;Get icon path.
+
+        According to type of installation pick method to get icon path. It can
+        be obtained from module directory or from `_MEIPASS` when application
+        is built.
 
         Returns
         -------
         Path
             `pathlib.Path` object containing information about icon path
         &#34;&#34;&#34;
-
         directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
         icon_path = Path(directory) / &#39;bookmeister.png&#39;
         return icon_path
@@ -147,7 +179,7 @@ class Gui(tk.Tk):
 
 class Search(tk.Frame):
     &#34;&#34;&#34;
-    Creates search widget. Extends `tk.Frame`.
+    Create search widget. Extend `tk.Frame`.
 
     ...
 
@@ -158,13 +190,14 @@ class Search(tk.Frame):
     &#34;&#34;&#34;
 
     def __init__(self, menu):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Create search bar elements.
+
         Parameters
         ----------
         menu : Gui
-            container where `Search` widget will be bound, used to pass `Form` variables
+            container where `Search` widget will be bound, used to pass `Form`
+            variables
         &#34;&#34;&#34;
-
         super().__init__(menu)
         create_label(self, &#39;Search results:&#39;, 0, 0)
         self.box = Searchbox(self, menu.form.variables)
@@ -173,21 +206,23 @@ class Search(tk.Frame):
 
 class Searchbox(ttk.Combobox):
     &#34;&#34;&#34;
-    Creates searchbox. Extends `tk.Combobox`.
+    Create searchbox. Extend `tk.Combobox`.
 
     ...
 
     Attributes
     ----------
     values : dict
-        has keys as displayed text in `Searchbox` and values as dictionaries holding information about records
+        has keys as displayed text in `Searchbox` and values as dictionaries
+        holding information about records
     variables : dict
-        dictionary storing keys used in `Form` and corresponding to them `tk.StringVar`s, modifying its values change
-        text seen in form
+        dictionary storing keys used in `Form` and corresponding to them
+        `tk.StringVar`s, modifying its values change text seen in form
     &#34;&#34;&#34;
 
     def __init__(self, frame, variables):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Configure searchbox.
+
         Parameters
         ----------
         frame : Search
@@ -195,74 +230,72 @@ class Searchbox(ttk.Combobox):
         variables : dict
             dictionary with `Form` variables
         &#34;&#34;&#34;
-
         super().__init__(frame, width=50, state=&#39;readonly&#39;)
         self.values = {}
         self.variables = variables
         self.bind(&#39;&lt;&lt;ComboboxSelected&gt;&gt;&#39;, self.do_on_select)
 
-    def assing_values(self, values):
-        &#34;&#34;&#34;Fills searchbox with values.
+    def assign_values(self, values):
+        &#34;&#34;&#34;Fill searchbox with values.
 
-        Clears previously loaded elements. For each record in passed values creates text which is placed in searchbox.
-        Stores it as key in `self.values` dictionary with corresponding it record values (dictionary). Then picks first
-        record and fills form with its values.
+        Clear previously loaded elements. For each record in passed values
+        create text which is placed in searchbox. Store it as key in
+        `self.values` dictionary with corresponding it record values
+        (dictionary). Then pick first record and fill form with its values.
 
         Parameters
         ----------
         values : list
             list with database records, their data stored in dictionaries
         &#34;&#34;&#34;
-
         self.clear()
         try:
-            for value in values:
-                self.values[f&#39;{value[&#34;ISBN&#34;]} &#34;{value[&#34;Title&#34;]}&#34; by {value[&#34;Author&#34;]}&#39;] = value
+            for data in values:
+                title = f&#39;{data[&#34;ISBN&#34;]} &#34;{data[&#34;Title&#34;]}&#34; by {data[&#34;Author&#34;]}&#39;
+                self.values[title] = data
             self[&#39;values&#39;] = sorted(list(self.values.keys()))
             self.current(0)
             self.do_on_select()
         except (TypeError, tk.TclError):
-            msg.showwarning(&#39;No records&#39;, &#39;Could not find any results to set criteria.&#39;)
+            msg.showwarning(&#39;No records&#39;,
+                            &#39;Could not find any results to set criteria.&#39;)
 
     def assign_image(self, image):
-        &#34;&#34;&#34;Stores image data in `self.values`.
+        &#34;&#34;&#34;Store image data in `self.values`.
 
         Parameters
         ----------
         image : str
-            string representing image data converted with `bookmeister.picture` module
+            string representing image id
         &#34;&#34;&#34;
-
         self.values[ttk.Combobox.get(self)][&#39;Cover&#39;] = image
 
     def do_on_select(self, *_):
-        &#34;&#34;&#34;Fills form with values from selected record.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Fill form with values from selected record.&#34;&#34;&#34;
         for key in self.variables.keys():
             try:
-                self.variables[key].set(self.values[ttk.Combobox.get(self)][key])
-            except KeyError:
+                self.variables[key].set(
+                    self.values[ttk.Combobox.get(self)][key])
+            except KeyError:  # pragma: no cover
                 pass
 
     def get(self):
-        &#34;&#34;&#34;Returns record id string when selected or None and displays error.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Return record id string when selected or None and display error.&#34;&#34;&#34;
         try:
             return self.values[ttk.Combobox.get(self)][&#39;_id&#39;]
         except KeyError:
-            msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation please select record first.&#39;)
+            msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation &#39;
+                                   &#39;please select record first.&#39;)
 
     def get_image(self):
-        &#34;&#34;&#34;Returns image data string when it exists else None.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Return image id when it exists else None.&#34;&#34;&#34;
         try:
             return self.values[ttk.Combobox.get(self)][&#39;Cover&#39;]
         except KeyError:
             return None
 
     def clear(self):
-        &#34;&#34;&#34;Clears positions from searchbox.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Clear positions from searchbox.&#34;&#34;&#34;
         self.values.clear()
         self.set(&#39;&#39;)
         self[&#39;values&#39;] = []
@@ -270,7 +303,7 @@ class Searchbox(ttk.Combobox):
 
 class Form(tk.Frame):
     &#34;&#34;&#34;
-    Creates form widget. Extends `tk.Frame`.
+    Create form widget. Extend `tk.Frame`.
 
     ...
 
@@ -279,27 +312,44 @@ class Form(tk.Frame):
     menu : Gui
         used to bind `Form` widget and communication with other menu elements
     variables : dict
-        dictionary storing `tk.StringVar`s with corresponding them names as keys
+        storing `tk.StringVar`s with corresponding them names as keys
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Configure form widget.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
         self.variables = {}
-        for place, record in enumerate(VALUES):
-            create_label(self, f&#39;{record.name}:&#39;, place, 0)
-            self.create_entry(record.name, record.value, place, 1)
-        tk.Button(self, text=&#39;Clear&#39;, width=4, command=self.clear).grid(row=place + 1, column=1, sticky=&#39;NE&#39;)
+        for place, name in enumerate(FIELDS):
+            create_label(self, f&#39;{name}:&#39;, place, 0)
+            self.create_entry(name, &#39;&#39;, place, 1)
+        tk.Button(self, text=&#39;Clear&#39;, width=4, command=self.clear).grid(
+            row=place + 1, column=1, sticky=&#39;NE&#39;)
         self.create_checkbutton(&#39;Hardcover&#39;, place + 1, 0)
 
-    def get(self):
-        &#34;&#34;&#34;Returns dictionary with fields names and their values.&#34;&#34;&#34;
+    def get(self, silent=False):
+        &#34;&#34;&#34;Return dictionary with fields names and their values from form.
 
-        return {key: value.get() for key, value in self.variables.items()}
+        Values are cast to types expected in database. When `silent` is set to
+        `False` display error window in case of incorrect field value.
+
+        Parameters
+        ----------
+        silent : bool, optional
+            specifies if error windows are shown or not in case of wrong values
+        &#34;&#34;&#34;
+        record = Record()
+        for key, value in self.variables.items():
+            try:
+                record[key] = value.get()
+            except ValueError as error:
+                if not silent:
+                    self.menu.show_error(error, key)
+        record.cast()
+        return record
 
     def clear(self):
-        &#34;&#34;&#34;Clears each variable value and removes records from `Searchbox`.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Clear each variable value and remove records from `Searchbox`.&#34;&#34;&#34;
         self.menu.search.box.clear()
         for variable in self.variables.values():
             try:
@@ -308,31 +358,31 @@ class Form(tk.Frame):
                 variable.set(False)
 
     def create_checkbutton(self, name, row, column):
-        &#34;&#34;&#34;Displays checkbutton.
+        &#34;&#34;&#34;Display checkbutton.
 
-        Binds `tk.Checkbutton` to `Form` frame. Creates `tk.BooleanVar` and stores it in `self.variables`. Displays
-        label with set name.
+        Bind `tk.Checkbutton` to `Form` frame. Create `tk.BooleanVar` and store
+         it in `self.variables`. Display label with set name.
 
         Parameters
         ----------
         name : str
             text displayed before checkbutton, used as key in `self.variables`
         row : int
-            row used with grid manager, specifies place where checkbutton will be displayed
+            row used with grid manager (place where button will be shown)
         column : int
-            column used with grid manager, specifies place where checkbutton will be displayed
+            column used with grid manager (place where button will be shown)
         &#34;&#34;&#34;
-
         create_label(self, f&#39;{name}: &#39;, row, column)
         content = tk.BooleanVar(self)
-        tk.Checkbutton(self, variable=content).grid(row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
+        tk.Checkbutton(self, variable=content).grid(
+            row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
         self.variables[name] = content
 
     def create_entry(self, name, value, row, column):
-        &#34;&#34;&#34;Displays entry.
+        &#34;&#34;&#34;Display entry.
 
-        Binds `tk.Entry` to `Form` frame. Creates `tk.StringVar` and stores it in `self.variables` with key passed in
-        name.
+        Bind `tk.Entry` to `Form` frame. Create `tk.StringVar` and store it in
+        `self.variables` with key passed in name.
 
         Parameters
         ----------
@@ -341,19 +391,19 @@ class Form(tk.Frame):
         value : str
             default value displayed in entry on application startup
         row : int
-            row used with grid manager, specifies place where entry will be displayed
+            row used with grid manager (place where entry will be displayed)
         column : int
-            column used with grid manager, specifies place where entry will be displayed
+            column used with grid manager (place where entry will be displayed)
         &#34;&#34;&#34;
-
         content = tk.StringVar(self, value=value)
-        tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
+        tk.Entry(self, width=40, textvariable=content).grid(
+            row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
         self.variables[name] = content
 
 
 class Image(tk.Frame):
     &#34;&#34;&#34;
-    Creates image widget. Extends `tk.Frame`.
+    Create image widget. Extend `tk.Frame`.
 
     ...
 
@@ -364,84 +414,112 @@ class Image(tk.Frame):
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Create buttons for interaction with images.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
-        tk.Button(self, text=&#39;Add cover&#39;, width=8, command=self.add_image).grid(row=0, column=0, pady=15)
-        tk.Button(self, text=&#39;View cover&#39;, width=8, command=self.view_image).grid(row=0, column=1, sticky=&#39;W&#39;)
+        tk.Button(self, text=&#39;Add cover&#39;, width=8,
+                  command=self.add_image).grid(row=0, column=0, pady=15)
+        tk.Button(self, text=&#39;View cover&#39;, width=8,
+                  command=self.view_image).grid(row=0, column=1, sticky=&#39;W&#39;)
 
     def add_image(self):
-        &#34;&#34;&#34;Updates selected record image in database.
+        &#34;&#34;&#34;Update selected record image in database.
 
-        When record is selected in `Searchbox` opens window where user can pick image file. Then converts image with
-        `bookmeister.picture` module. If it succeed adds it to database else displays error window.
+        When record is selected in `Searchbox` open window where user can pick
+        image file. Then convert image with `bookmeister.picture` module. If
+        it succeed add it to database else display error window.
         &#34;&#34;&#34;
-
         selected = self.menu.search.box.get()
         if selected:
             path = askopenfile(initialdir=Path.home())
             if path:
-                image = Picture(path.name).get()
-                if image:
-                    if Database().update(selected, {&#39;Cover&#39;: image}):
-                        self.menu.search.box.assign_image(image)
-                        msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
-                    else:
-                        show_no_connection()
+                if self.verify(path.name):
+                    image_id = Database().upload_image(path.name)
+                    if image_id:
+                        if Database().update(selected, {&#39;Cover&#39;: image_id}):
+                            self.menu.search.box.assign_image(image_id)
+                            msg.showinfo(&#39;Done&#39;,
+                                         &#39;Image successfully saved.&#39;)
+                        else:
+                            show_no_connection()
                 else:
                     msg.showerror(&#39;Error&#39;, &#39;Wrong image file format.&#39;)
 
     def view_image(self):
-        &#34;&#34;&#34;Displays selected record image.
+        &#34;&#34;&#34;Display selected record image.
 
-        When record is selected in `Searchbox` opens its image with `bookmeister.picture` module. If operation failed
-        displays error.
+        When record is selected in `Searchbox` open its image in browser. If
+        operation failed display error.
         &#34;&#34;&#34;
-
         if self.menu.search.box.get():
-            if not Picture.show(self.menu.search.box.get_image()):
-                msg.showerror(&#39;Error&#39;, &#39;Could not open image. File may be corrupted or not uploaded yet.&#39;)
+            picture = self.menu.search.box.get_image()
+            if picture:
+                self.open_image(picture)
+            else:
+                msg.showerror(&#39;Error&#39;, &#39;There is no image uploaded yet.&#39;)
+
+    @staticmethod
+    def open_image(link):
+        &#34;&#34;&#34;Open image from database media archive in browser.
+
+        Parameters
+        ----------
+        link : str
+            identification number of image from database media archive
+        &#34;&#34;&#34;
+        url = Database().url + &#39;/media/&#39; + link
+        webbrowser.open(url, new=True)
+
+    @staticmethod
+    def verify(path):
+        &#34;&#34;&#34;Return True if under set path there is valid image else False.&#34;&#34;&#34;
+        try:
+            image = PIL.Image.open(path)
+            image.verify()
+            image.close()
+            return True
+        except (FileNotFoundError, PIL.UnidentifiedImageError):
+            return False
 
 
 class Buttons(tk.Frame):
     &#34;&#34;&#34;
-    Creates buttons widget. Extends `tk.Frame`.
+    Create buttons widget. Extend `tk.Frame`.
 
     ...
 
     Attributes
     ----------
     menu : Gui
-        used to bind `Buttons` widget and communication with other menu elements
+        used to bind `Buttons` widget and communication with other elements
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Create buttons for interaction with database.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
         positions = (&#39;add&#39;, &#39;search&#39;, &#39;revise&#39;, &#39;delete&#39;)
         for place, name in enumerate(positions):
-            tk.Button(self, text=name.capitalize(), width=5, command=eval(f&#39;self.{name}&#39;)).grid(row=0, column=place)
+            tk.Button(self, text=name.capitalize(), width=5,
+                      command=getattr(self, name)).grid(row=0, column=place)
 
     def process_data(self, data, operation, *args):
-        &#34;&#34;&#34;Checks data and performs passed database operation.
+        &#34;&#34;&#34;Check data and perform passed database operation.
 
-        Uses `bookmeister.record.Validator.process` to check passed data. If they are correct
-        `bookmeister.record.cast_values` to accepted format in database. Then sends them. Clears `Form`, `Searchbox`
-        and notifies about success. In case of error displays proper message.
+        Check if passed dictionary has all necessary keys. If yes send them
+        to database. Then clear `Form`, `Searchbox` and notify about success.
+        In case of error display proper message.
 
         Parameters
         ----------
         data : dict
             contains values collected from form fields
         operation : method
-            operation performed on `bookmeister.connection.Database` - add or update
+            operation performed on `bookmeister.connection.Database`
         *args
             used to pass record id for update operation
         &#34;&#34;&#34;
-
-        validator = Validator(self.show_error)
-        validator.process(data)
-        if validator.is_correct:
-            cast_values(data)
+        if not set(FIELDS) - (data.keys()):
             if operation(*args, data):
                 msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
                 self.menu.search.box.clear()
@@ -450,67 +528,69 @@ class Buttons(tk.Frame):
                 show_no_connection()
 
     def add(self):
-        &#34;&#34;&#34;Adds record to database.
+        &#34;&#34;&#34;Add record to database.
 
-        Use `Form.get` to collect data. Then checks database if record with set ISBN number already exists. If not adds
-        it. In case of errors displays notification. If succeed information is displayed aswell.
+        Use `Form.get` to collect data. Then check database if record with set
+        ISBN number already exists. If not add it. In case of errors display
+        notification. If operation succeed information is displayed as well.
         &#34;&#34;&#34;
-
         data = self.menu.form.get()
-        exists = self.exist_check(data[&#39;ISBN&#39;])
+        exists = self.exist_check(data.get(&#39;ISBN&#39;, None))
         if exists is None:
             show_no_connection()
         else:
             if exists:
-                self.show_error(&#39;Record with set ISBN already exists in database.&#39;)
+                self.menu.show_error(
+                    &#39;Record with set ISBN already exists in database.&#39;)
             else:
                 self.process_data(data, Database().add)
 
     def search(self):
         &#34;&#34;&#34;Search for record matching criteria in database.
 
-        Use `Form.get` to collect values. Removes those taken from empty fields. If search parameters are specified then
-        `bookmeister.record.cast_values` types to expected in database. Finally places request results in `Searchbox`.
+        Use `Form.get` to collect values. Silent parameter is set to not
+        display notifications about empty fields. Place request results in
+        `Searchbox`.
         &#34;&#34;&#34;
-
-        parameters = {key: value for key, value in self.menu.form.get().items() if value}
+        parameters = self.menu.form.get(True)
         if parameters:
-            cast_values(parameters)
             result = Database().search(parameters)
             if result is None:
                 show_no_connection()
             else:
-                self.menu.search.box.assing_values(result)
+                self.menu.search.box.assign_values(result)
 
     def revise(self):
         &#34;&#34;&#34;Update record in database.
 
-        Use `Form.get` to collect values. Checks if record to update is selected in `Searchbox` then sends data.
+        Use `Form.get` to collect values. Check if record to update is selected
+         in `Searchbox` then send data.
         &#34;&#34;&#34;
-
         data = self.menu.form.get()
         selected = self.menu.search.box.get()
         if selected:
             self.process_data(data, Database().update, selected)
 
     def delete(self):
-        &#34;&#34;&#34;Update record in database.
+        &#34;&#34;&#34;Remove record from database.
 
-        Checks if record is selected in `Searchbox` then removes it from database. `Form` and `Searchbox` are cleared.
-        Notification about success is displayed. In case of errors information is shown aswell.
+        Check if record is selected in `Searchbox` then removes it from
+        database. `Form` and `Searchbox` are cleared. Notification about
+        success is displayed. In case of errors information is shown as well.
         &#34;&#34;&#34;
-
         selected = self.menu.search.box.get()
         if selected:
             if Database().delete(selected):
-                msg.showinfo(&#39;Done&#39;, &#39;Record successfully removed from database.&#39;)
+                msg.showinfo(&#39;Done&#39;,
+                             &#39;Record successfully removed from database.&#39;)
                 self.menu.search.box.clear()
                 self.menu.form.clear()
             else:
                 show_no_connection()
 
-    def exist_check(self, number):
-        &#34;&#34;&#34;Checks if record with set ISBN is already in database.
+    @staticmethod
+    def exist_check(number):
+        &#34;&#34;&#34;Check if record with set ISBN is already in database.
 
         Parameters
         ----------
@@ -524,34 +604,12 @@ class Buttons(tk.Frame):
         None
             in case of connection error with database
         False
-            when passed number is empty string &#34;&#34;
+            when passed number is empty string
         &#34;&#34;&#34;
-
         if number:
-            query = {&#39;ISBN&#39;: number}
-            cast_values(query)
-            return Database().search(query)
-        return False
-
-    def show_error(self, message, field=None):
-        &#34;&#34;&#34;Displays error window and clears form field (whole form when None field set).
-
-        Parameters
-        ----------
-        message : str
-            text displayed in error window
-        field : str or None, optional
-            name of field where value will be cleared, default None - clears whole form
-        &#34;&#34;&#34;
-
-        if field is None:
-            self.menu.form.clear()
-        else:
-            self.menu.form.variables[field].set(&#39;&#39;)
-        msg.showerror(&#39;Error&#39;, message)</code></pre>
+            return Database().search({&#39;ISBN&#39;: number})
+        return False</code></pre>
 </details>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -562,7 +620,7 @@ class Buttons(tk.Frame):
 <span>def <span class="ident">create_label</span></span>(<span>container, message, row, column)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Displays text in set <code>tkinter</code> container.</p>
+<section class="desc"><p>Display text in set <code>tkinter</code> container.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>container</code></strong> :&ensp;<code>tk.Tk</code> or <code>tk.Frame</code></dt>
@@ -570,16 +628,17 @@ class Buttons(tk.Frame):
 <dt><strong><code>message</code></strong> :&ensp;<code>str</code></dt>
 <dd>text displayed</dd>
 <dt><strong><code>row</code></strong> :&ensp;<code>int</code></dt>
-<dd>row used with grid manager, specifies place where label will be displayed</dd>
+<dd>row used with grid manager (place where label will be displayed)</dd>
 <dt><strong><code>column</code></strong> :&ensp;<code>int</code></dt>
-<dd>column used with grid manager, specifies place where label will be displayed</dd>
+<dd>column used with grid manager (place where label will be displayed)</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L43-L58" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def create_label(container, message, row, column):
-    &#34;&#34;&#34;Displays text in set `tkinter` container.
+    &#34;&#34;&#34;Display text in set `tkinter` container.
 
     Parameters
     ----------
@@ -588,27 +647,28 @@ class Buttons(tk.Frame):
     message : str
         text displayed
     row : int
-        row used with grid manager, specifies place where label will be displayed
+        row used with grid manager (place where label will be displayed)
     column : int
-        column used with grid manager, specifies place where label will be displayed
+        column used with grid manager (place where label will be displayed)
     &#34;&#34;&#34;
-
-    tk.Label(container, text=message, font=&#39;none 10&#39;).grid(row=row, column=column, padx=12, pady=2, sticky=&#39;W&#39;)</code></pre>
+    tk.Label(container, text=message, font=&#39;none 10&#39;).grid(
+        row=row, column=column, padx=12, pady=2, sticky=&#39;W&#39;)</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.gui.show_no_connection"><code class="name flex">
 <span>def <span class="ident">show_no_connection</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Displays error message about connection problem.</p></section>
+<section class="desc"><p>Display error message about connection problem.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L37-L40" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def show_no_connection():
-    &#34;&#34;&#34;Displays error message about connection problem.&#34;&#34;&#34;
-
-    msg.showerror(&#39;Error&#39;, &#39;Could not perform operation. It may be connection with database problem. Try again later.&#39;)</code></pre>
+    &#34;&#34;&#34;Display error message about connection problem.&#34;&#34;&#34;
+    msg.showerror(&#39;Error&#39;, &#39;Could not perform operation. It may be connection &#39;
+                           &#39;with database problem. Try again later.&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -621,61 +681,57 @@ class Buttons(tk.Frame):
 <span>(</span><span>menu)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates buttons widget. Extends <code>tk.Frame</code>.</p>
+<section class="desc"><p>Create buttons widget. Extend <code>tk.Frame</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>menu</code></strong> :&ensp;<a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a></dt>
-<dd>used to bind <a title="bookmeister.gui.Buttons" href="#bookmeister.gui.Buttons"><code>Buttons</code></a> widget and communication with other menu elements</dd>
+<dt><strong><code>menu</code></strong> :&ensp;<code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></dt>
+<dd>used to bind <code><a title="bookmeister.gui.Buttons" href="#bookmeister.gui.Buttons">Buttons</a></code> widget and communication with other elements</dd>
 </dl>
-<p>Construct a frame widget with the parent MASTER.</p>
-<p>Valid resource names: background, bd, bg, borderwidth, class,
-colormap, container, cursor, height, highlightbackground,
-highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></section>
+<p>Create buttons for interaction with database.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L442-L568" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Buttons(tk.Frame):
     &#34;&#34;&#34;
-    Creates buttons widget. Extends `tk.Frame`.
+    Create buttons widget. Extend `tk.Frame`.
 
     ...
 
     Attributes
     ----------
     menu : Gui
-        used to bind `Buttons` widget and communication with other menu elements
+        used to bind `Buttons` widget and communication with other elements
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Create buttons for interaction with database.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
         positions = (&#39;add&#39;, &#39;search&#39;, &#39;revise&#39;, &#39;delete&#39;)
         for place, name in enumerate(positions):
-            tk.Button(self, text=name.capitalize(), width=5, command=eval(f&#39;self.{name}&#39;)).grid(row=0, column=place)
+            tk.Button(self, text=name.capitalize(), width=5,
+                      command=getattr(self, name)).grid(row=0, column=place)
 
     def process_data(self, data, operation, *args):
-        &#34;&#34;&#34;Checks data and performs passed database operation.
+        &#34;&#34;&#34;Check data and perform passed database operation.
 
-        Uses `bookmeister.record.Validator.process` to check passed data. If they are correct
-        `bookmeister.record.cast_values` to accepted format in database. Then sends them. Clears `Form`, `Searchbox`
-        and notifies about success. In case of error displays proper message.
+        Check if passed dictionary has all necessary keys. If yes send them
+        to database. Then clear `Form`, `Searchbox` and notify about success.
+        In case of error display proper message.
 
         Parameters
         ----------
         data : dict
             contains values collected from form fields
         operation : method
-            operation performed on `bookmeister.connection.Database` - add or update
+            operation performed on `bookmeister.connection.Database`
         *args
             used to pass record id for update operation
         &#34;&#34;&#34;
-
-        validator = Validator(self.show_error)
-        validator.process(data)
-        if validator.is_correct:
-            cast_values(data)
+        if not set(FIELDS) - (data.keys()):
             if operation(*args, data):
                 msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
                 self.menu.search.box.clear()
@@ -684,67 +740,69 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
                 show_no_connection()
 
     def add(self):
-        &#34;&#34;&#34;Adds record to database.
+        &#34;&#34;&#34;Add record to database.
 
-        Use `Form.get` to collect data. Then checks database if record with set ISBN number already exists. If not adds
-        it. In case of errors displays notification. If succeed information is displayed aswell.
+        Use `Form.get` to collect data. Then check database if record with set
+        ISBN number already exists. If not add it. In case of errors display
+        notification. If operation succeed information is displayed as well.
         &#34;&#34;&#34;
-
         data = self.menu.form.get()
-        exists = self.exist_check(data[&#39;ISBN&#39;])
+        exists = self.exist_check(data.get(&#39;ISBN&#39;, None))
         if exists is None:
             show_no_connection()
         else:
             if exists:
-                self.show_error(&#39;Record with set ISBN already exists in database.&#39;)
+                self.menu.show_error(
+                    &#39;Record with set ISBN already exists in database.&#39;)
             else:
                 self.process_data(data, Database().add)
 
     def search(self):
         &#34;&#34;&#34;Search for record matching criteria in database.
 
-        Use `Form.get` to collect values. Removes those taken from empty fields. If search parameters are specified then
-        `bookmeister.record.cast_values` types to expected in database. Finally places request results in `Searchbox`.
+        Use `Form.get` to collect values. Silent parameter is set to not
+        display notifications about empty fields. Place request results in
+        `Searchbox`.
         &#34;&#34;&#34;
-
-        parameters = {key: value for key, value in self.menu.form.get().items() if value}
+        parameters = self.menu.form.get(True)
         if parameters:
-            cast_values(parameters)
             result = Database().search(parameters)
             if result is None:
                 show_no_connection()
             else:
-                self.menu.search.box.assing_values(result)
+                self.menu.search.box.assign_values(result)
 
     def revise(self):
         &#34;&#34;&#34;Update record in database.
 
-        Use `Form.get` to collect values. Checks if record to update is selected in `Searchbox` then sends data.
+        Use `Form.get` to collect values. Check if record to update is selected
+         in `Searchbox` then send data.
         &#34;&#34;&#34;
-
         data = self.menu.form.get()
         selected = self.menu.search.box.get()
         if selected:
             self.process_data(data, Database().update, selected)
 
     def delete(self):
-        &#34;&#34;&#34;Update record in database.
+        &#34;&#34;&#34;Remove record from database.
 
-        Checks if record is selected in `Searchbox` then removes it from database. `Form` and `Searchbox` are cleared.
-        Notification about success is displayed. In case of errors information is shown aswell.
+        Check if record is selected in `Searchbox` then removes it from
+        database. `Form` and `Searchbox` are cleared. Notification about
+        success is displayed. In case of errors information is shown as well.
         &#34;&#34;&#34;
-
         selected = self.menu.search.box.get()
         if selected:
             if Database().delete(selected):
-                msg.showinfo(&#39;Done&#39;, &#39;Record successfully removed from database.&#39;)
+                msg.showinfo(&#39;Done&#39;,
+                             &#39;Record successfully removed from database.&#39;)
                 self.menu.search.box.clear()
                 self.menu.form.clear()
             else:
                 show_no_connection()
 
-    def exist_check(self, number):
-        &#34;&#34;&#34;Checks if record with set ISBN is already in database.
+    @staticmethod
+    def exist_check(number):
+        &#34;&#34;&#34;Check if record with set ISBN is already in database.
 
         Parameters
         ----------
@@ -758,31 +816,11 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
         None
             in case of connection error with database
         False
-            when passed number is empty string &#34;&#34;
+            when passed number is empty string
         &#34;&#34;&#34;
-
         if number:
-            query = {&#39;ISBN&#39;: number}
-            cast_values(query)
-            return Database().search(query)
-        return False
-
-    def show_error(self, message, field=None):
-        &#34;&#34;&#34;Displays error window and clears form field (whole form when None field set).
-
-        Parameters
-        ----------
-        message : str
-            text displayed in error window
-        field : str or None, optional
-            name of field where value will be cleared, default None - clears whole form
-        &#34;&#34;&#34;
-
-        if field is None:
-            self.menu.form.clear()
-        else:
-            self.menu.form.variables[field].set(&#39;&#39;)
-        msg.showerror(&#39;Error&#39;, message)</code></pre>
+            return Database().search({&#39;ISBN&#39;: number})
+        return False</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -794,70 +832,13 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
 <li>tkinter.Place</li>
 <li>tkinter.Grid</li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
-<dt id="bookmeister.gui.Buttons.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Adds record to database.</p>
-<p>Use <a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get"><code>Form.get()</code></a> to collect data. Then checks database if record with set ISBN number already exists. If not adds
-it. In case of errors displays notification. If succeed information is displayed aswell.</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add(self):
-    &#34;&#34;&#34;Adds record to database.
-
-    Use `Form.get` to collect data. Then checks database if record with set ISBN number already exists. If not adds
-    it. In case of errors displays notification. If succeed information is displayed aswell.
-    &#34;&#34;&#34;
-
-    data = self.menu.form.get()
-    exists = self.exist_check(data[&#39;ISBN&#39;])
-    if exists is None:
-        show_no_connection()
-    else:
-        if exists:
-            self.show_error(&#39;Record with set ISBN already exists in database.&#39;)
-        else:
-            self.process_data(data, Database().add)</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.gui.Buttons.delete"><code class="name flex">
-<span>def <span class="ident">delete</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Update record in database.</p>
-<p>Checks if record is selected in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> then removes it from database. <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> and <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> are cleared.
-Notification about success is displayed. In case of errors information is shown aswell.</p></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delete(self):
-    &#34;&#34;&#34;Update record in database.
-
-    Checks if record is selected in `Searchbox` then removes it from database. `Form` and `Searchbox` are cleared.
-    Notification about success is displayed. In case of errors information is shown aswell.
-    &#34;&#34;&#34;
-
-    selected = self.menu.search.box.get()
-    if selected:
-        if Database().delete(selected):
-            msg.showinfo(&#39;Done&#39;, &#39;Record successfully removed from database.&#39;)
-            self.menu.search.box.clear()
-            self.menu.form.clear()
-        else:
-            show_no_connection()</code></pre>
-</details>
-</dd>
 <dt id="bookmeister.gui.Buttons.exist_check"><code class="name flex">
-<span>def <span class="ident">exist_check</span></span>(<span>self, number)</span>
+<span>def <span class="ident">exist_check</span></span>(<span>number)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks if record with set ISBN is already in database.</p>
+<section class="desc"><p>Check if record with set ISBN is already in database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>number</code></strong> :&ensp;<code>str</code></dt>
@@ -870,14 +851,16 @@ Notification about success is displayed. In case of errors information is shown 
 <dt><code>None</code></dt>
 <dd>in case of connection error with database</dd>
 <dt><code>False</code></dt>
-<dd>when passed number is empty string ""</dd>
+<dd>when passed number is empty string</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L548-L568" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def exist_check(self, number):
-    &#34;&#34;&#34;Checks if record with set ISBN is already in database.
+<pre><code class="python">@staticmethod
+def exist_check(number):
+    &#34;&#34;&#34;Check if record with set ISBN is already in database.
 
     Parameters
     ----------
@@ -891,58 +874,118 @@ Notification about success is displayed. In case of errors information is shown 
     None
         in case of connection error with database
     False
-        when passed number is empty string &#34;&#34;
+        when passed number is empty string
     &#34;&#34;&#34;
-
     if number:
-        query = {&#39;ISBN&#39;: number}
-        cast_values(query)
-        return Database().search(query)
+        return Database().search({&#39;ISBN&#39;: number})
     return False</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bookmeister.gui.Buttons.add"><code class="name flex">
+<span>def <span class="ident">add</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Add record to database.</p>
+<p>Use <code><a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get">Form.get()</a></code> to collect data. Then check database if record with set
+ISBN number already exists. If not add it. In case of errors display
+notification. If operation succeed information is displayed as well.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L487-L503" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def add(self):
+    &#34;&#34;&#34;Add record to database.
+
+    Use `Form.get` to collect data. Then check database if record with set
+    ISBN number already exists. If not add it. In case of errors display
+    notification. If operation succeed information is displayed as well.
+    &#34;&#34;&#34;
+    data = self.menu.form.get()
+    exists = self.exist_check(data.get(&#39;ISBN&#39;, None))
+    if exists is None:
+        show_no_connection()
+    else:
+        if exists:
+            self.menu.show_error(
+                &#39;Record with set ISBN already exists in database.&#39;)
+        else:
+            self.process_data(data, Database().add)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.gui.Buttons.delete"><code class="name flex">
+<span>def <span class="ident">delete</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Remove record from database.</p>
+<p>Check if record is selected in <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> then removes it from
+database. <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> and <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> are cleared. Notification about
+success is displayed. In case of errors information is shown as well.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L531-L546" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def delete(self):
+    &#34;&#34;&#34;Remove record from database.
+
+    Check if record is selected in `Searchbox` then removes it from
+    database. `Form` and `Searchbox` are cleared. Notification about
+    success is displayed. In case of errors information is shown as well.
+    &#34;&#34;&#34;
+    selected = self.menu.search.box.get()
+    if selected:
+        if Database().delete(selected):
+            msg.showinfo(&#39;Done&#39;,
+                         &#39;Record successfully removed from database.&#39;)
+            self.menu.search.box.clear()
+            self.menu.form.clear()
+        else:
+            show_no_connection()</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.gui.Buttons.process_data"><code class="name flex">
 <span>def <span class="ident">process_data</span></span>(<span>self, data, operation, *args)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks data and performs passed database operation.</p>
-<p>Uses <a title="bookmeister.record.Validator.process" href="record.html#bookmeister.record.Validator.process"><code>Validator.process()</code></a> to check passed data. If they are correct
-<a title="bookmeister.record.cast_values" href="record.html#bookmeister.record.cast_values"><code>cast_values()</code></a> to accepted format in database. Then sends them. Clears <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a>, <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a>
-and notifies about success. In case of error displays proper message.</p>
+<section class="desc"><p>Check data and perform passed database operation.</p>
+<p>Check if passed dictionary has all necessary keys. If yes send them
+to database. Then clear <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code>, <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> and notify about success.
+In case of error display proper message.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
 <dd>contains values collected from form fields</dd>
 <dt><strong><code>operation</code></strong> :&ensp;<code>method</code></dt>
-<dd>operation performed on <a title="bookmeister.connection.Database" href="connection.html#bookmeister.connection.Database"><code>Database</code></a> - add or update</dd>
+<dd>operation performed on <code><a title="bookmeister.connection.Database" href="connection.html#bookmeister.connection.Database">Database</a></code></dd>
 <dt><strong><code>*args</code></strong></dt>
 <dd>used to pass record id for update operation</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L463-L485" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def process_data(self, data, operation, *args):
-    &#34;&#34;&#34;Checks data and performs passed database operation.
+    &#34;&#34;&#34;Check data and perform passed database operation.
 
-    Uses `bookmeister.record.Validator.process` to check passed data. If they are correct
-    `bookmeister.record.cast_values` to accepted format in database. Then sends them. Clears `Form`, `Searchbox`
-    and notifies about success. In case of error displays proper message.
+    Check if passed dictionary has all necessary keys. If yes send them
+    to database. Then clear `Form`, `Searchbox` and notify about success.
+    In case of error display proper message.
 
     Parameters
     ----------
     data : dict
         contains values collected from form fields
     operation : method
-        operation performed on `bookmeister.connection.Database` - add or update
+        operation performed on `bookmeister.connection.Database`
     *args
         used to pass record id for update operation
     &#34;&#34;&#34;
-
-    validator = Validator(self.show_error)
-    validator.process(data)
-    if validator.is_correct:
-        cast_values(data)
+    if not set(FIELDS) - (data.keys()):
         if operation(*args, data):
             msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
             self.menu.search.box.clear()
@@ -956,17 +999,19 @@ and notifies about success. In case of error displays proper message.</p>
 </code></dt>
 <dd>
 <section class="desc"><p>Update record in database.</p>
-<p>Use <a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get"><code>Form.get()</code></a> to collect values. Checks if record to update is selected in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> then sends data.</p></section>
+<p>Use <code><a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get">Form.get()</a></code> to collect values. Check if record to update is selected
+in <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> then send data.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L520-L529" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def revise(self):
     &#34;&#34;&#34;Update record in database.
 
-    Use `Form.get` to collect values. Checks if record to update is selected in `Searchbox` then sends data.
+    Use `Form.get` to collect values. Check if record to update is selected
+     in `Searchbox` then send data.
     &#34;&#34;&#34;
-
     data = self.menu.form.get()
     selected = self.menu.search.box.get()
     if selected:
@@ -978,61 +1023,28 @@ and notifies about success. In case of error displays proper message.</p>
 </code></dt>
 <dd>
 <section class="desc"><p>Search for record matching criteria in database.</p>
-<p>Use <a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get"><code>Form.get()</code></a> to collect values. Removes those taken from empty fields. If search parameters are specified then
-<a title="bookmeister.record.cast_values" href="record.html#bookmeister.record.cast_values"><code>cast_values()</code></a> types to expected in database. Finally places request results in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a>.</p></section>
+<p>Use <code><a title="bookmeister.gui.Form.get" href="#bookmeister.gui.Form.get">Form.get()</a></code> to collect values. Silent parameter is set to not
+display notifications about empty fields. Place request results in
+<code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L505-L518" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def search(self):
     &#34;&#34;&#34;Search for record matching criteria in database.
 
-    Use `Form.get` to collect values. Removes those taken from empty fields. If search parameters are specified then
-    `bookmeister.record.cast_values` types to expected in database. Finally places request results in `Searchbox`.
+    Use `Form.get` to collect values. Silent parameter is set to not
+    display notifications about empty fields. Place request results in
+    `Searchbox`.
     &#34;&#34;&#34;
-
-    parameters = {key: value for key, value in self.menu.form.get().items() if value}
+    parameters = self.menu.form.get(True)
     if parameters:
-        cast_values(parameters)
         result = Database().search(parameters)
         if result is None:
             show_no_connection()
         else:
-            self.menu.search.box.assing_values(result)</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.gui.Buttons.show_error"><code class="name flex">
-<span>def <span class="ident">show_error</span></span>(<span>self, message, field=None)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Displays error window and clears form field (whole form when None field set).</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>message</code></strong> :&ensp;<code>str</code></dt>
-<dd>text displayed in error window</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>str</code> or <code>None</code>, optional</dt>
-<dd>name of field where value will be cleared, default None - clears whole form</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def show_error(self, message, field=None):
-    &#34;&#34;&#34;Displays error window and clears form field (whole form when None field set).
-
-    Parameters
-    ----------
-    message : str
-        text displayed in error window
-    field : str or None, optional
-        name of field where value will be cleared, default None - clears whole form
-    &#34;&#34;&#34;
-
-    if field is None:
-        self.menu.form.clear()
-    else:
-        self.menu.form.variables[field].set(&#39;&#39;)
-    msg.showerror(&#39;Error&#39;, message)</code></pre>
+            self.menu.search.box.assign_values(result)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1042,26 +1054,24 @@ and notifies about success. In case of error displays proper message.</p>
 <span>(</span><span>menu)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates form widget. Extends <code>tk.Frame</code>.</p>
+<section class="desc"><p>Create form widget. Extend <code>tk.Frame</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>menu</code></strong> :&ensp;<a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a></dt>
-<dd>used to bind <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> widget and communication with other menu elements</dd>
+<dt><strong><code>menu</code></strong> :&ensp;<code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></dt>
+<dd>used to bind <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> widget and communication with other menu elements</dd>
 <dt><strong><code>variables</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary storing <code>tk.StringVar</code>s with corresponding them names as keys</dd>
+<dd>storing <code>tk.StringVar</code>s with corresponding them names as keys</dd>
 </dl>
-<p>Construct a frame widget with the parent MASTER.</p>
-<p>Valid resource names: background, bd, bg, borderwidth, class,
-colormap, container, cursor, height, highlightbackground,
-highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></section>
+<p>Configure form widget.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L261-L358" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Form(tk.Frame):
     &#34;&#34;&#34;
-    Creates form widget. Extends `tk.Frame`.
+    Create form widget. Extend `tk.Frame`.
 
     ...
 
@@ -1070,27 +1080,44 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
     menu : Gui
         used to bind `Form` widget and communication with other menu elements
     variables : dict
-        dictionary storing `tk.StringVar`s with corresponding them names as keys
+        storing `tk.StringVar`s with corresponding them names as keys
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Configure form widget.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
         self.variables = {}
-        for place, record in enumerate(VALUES):
-            create_label(self, f&#39;{record.name}:&#39;, place, 0)
-            self.create_entry(record.name, record.value, place, 1)
-        tk.Button(self, text=&#39;Clear&#39;, width=4, command=self.clear).grid(row=place + 1, column=1, sticky=&#39;NE&#39;)
+        for place, name in enumerate(FIELDS):
+            create_label(self, f&#39;{name}:&#39;, place, 0)
+            self.create_entry(name, &#39;&#39;, place, 1)
+        tk.Button(self, text=&#39;Clear&#39;, width=4, command=self.clear).grid(
+            row=place + 1, column=1, sticky=&#39;NE&#39;)
         self.create_checkbutton(&#39;Hardcover&#39;, place + 1, 0)
 
-    def get(self):
-        &#34;&#34;&#34;Returns dictionary with fields names and their values.&#34;&#34;&#34;
+    def get(self, silent=False):
+        &#34;&#34;&#34;Return dictionary with fields names and their values from form.
 
-        return {key: value.get() for key, value in self.variables.items()}
+        Values are cast to types expected in database. When `silent` is set to
+        `False` display error window in case of incorrect field value.
+
+        Parameters
+        ----------
+        silent : bool, optional
+            specifies if error windows are shown or not in case of wrong values
+        &#34;&#34;&#34;
+        record = Record()
+        for key, value in self.variables.items():
+            try:
+                record[key] = value.get()
+            except ValueError as error:
+                if not silent:
+                    self.menu.show_error(error, key)
+        record.cast()
+        return record
 
     def clear(self):
-        &#34;&#34;&#34;Clears each variable value and removes records from `Searchbox`.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Clear each variable value and remove records from `Searchbox`.&#34;&#34;&#34;
         self.menu.search.box.clear()
         for variable in self.variables.values():
             try:
@@ -1099,31 +1126,31 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
                 variable.set(False)
 
     def create_checkbutton(self, name, row, column):
-        &#34;&#34;&#34;Displays checkbutton.
+        &#34;&#34;&#34;Display checkbutton.
 
-        Binds `tk.Checkbutton` to `Form` frame. Creates `tk.BooleanVar` and stores it in `self.variables`. Displays
-        label with set name.
+        Bind `tk.Checkbutton` to `Form` frame. Create `tk.BooleanVar` and store
+         it in `self.variables`. Display label with set name.
 
         Parameters
         ----------
         name : str
             text displayed before checkbutton, used as key in `self.variables`
         row : int
-            row used with grid manager, specifies place where checkbutton will be displayed
+            row used with grid manager (place where button will be shown)
         column : int
-            column used with grid manager, specifies place where checkbutton will be displayed
+            column used with grid manager (place where button will be shown)
         &#34;&#34;&#34;
-
         create_label(self, f&#39;{name}: &#39;, row, column)
         content = tk.BooleanVar(self)
-        tk.Checkbutton(self, variable=content).grid(row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
+        tk.Checkbutton(self, variable=content).grid(
+            row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
         self.variables[name] = content
 
     def create_entry(self, name, value, row, column):
-        &#34;&#34;&#34;Displays entry.
+        &#34;&#34;&#34;Display entry.
 
-        Binds `tk.Entry` to `Form` frame. Creates `tk.StringVar` and stores it in `self.variables` with key passed in
-        name.
+        Bind `tk.Entry` to `Form` frame. Create `tk.StringVar` and store it in
+        `self.variables` with key passed in name.
 
         Parameters
         ----------
@@ -1132,13 +1159,13 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
         value : str
             default value displayed in entry on application startup
         row : int
-            row used with grid manager, specifies place where entry will be displayed
+            row used with grid manager (place where entry will be displayed)
         column : int
-            column used with grid manager, specifies place where entry will be displayed
+            column used with grid manager (place where entry will be displayed)
         &#34;&#34;&#34;
-
         content = tk.StringVar(self, value=value)
-        tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
+        tk.Entry(self, width=40, textvariable=content).grid(
+            row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
         self.variables[name] = content</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1157,14 +1184,14 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
 <span>def <span class="ident">clear</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Clears each variable value and removes records from <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a>.</p></section>
+<section class="desc"><p>Clear each variable value and remove records from <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L308-L315" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def clear(self):
-    &#34;&#34;&#34;Clears each variable value and removes records from `Searchbox`.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Clear each variable value and remove records from `Searchbox`.&#34;&#34;&#34;
     self.menu.search.box.clear()
     for variable in self.variables.values():
         try:
@@ -1177,41 +1204,42 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
 <span>def <span class="ident">create_checkbutton</span></span>(<span>self, name, row, column)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Displays checkbutton.</p>
-<p>Binds <code>tk.Checkbutton</code> to <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> frame. Creates <code>tk.BooleanVar</code> and stores it in <code>self.variables</code>. Displays
-label with set name.</p>
+<section class="desc"><p>Display checkbutton.</p>
+<p>Bind <code>tk.Checkbutton</code> to <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> frame. Create <code>tk.BooleanVar</code> and store
+it in <code>self.variables</code>. Display label with set name.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>text displayed before checkbutton, used as key in <code>self.variables</code></dd>
 <dt><strong><code>row</code></strong> :&ensp;<code>int</code></dt>
-<dd>row used with grid manager, specifies place where checkbutton will be displayed</dd>
+<dd>row used with grid manager (place where button will be shown)</dd>
 <dt><strong><code>column</code></strong> :&ensp;<code>int</code></dt>
-<dd>column used with grid manager, specifies place where checkbutton will be displayed</dd>
+<dd>column used with grid manager (place where button will be shown)</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L317-L336" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def create_checkbutton(self, name, row, column):
-    &#34;&#34;&#34;Displays checkbutton.
+    &#34;&#34;&#34;Display checkbutton.
 
-    Binds `tk.Checkbutton` to `Form` frame. Creates `tk.BooleanVar` and stores it in `self.variables`. Displays
-    label with set name.
+    Bind `tk.Checkbutton` to `Form` frame. Create `tk.BooleanVar` and store
+     it in `self.variables`. Display label with set name.
 
     Parameters
     ----------
     name : str
         text displayed before checkbutton, used as key in `self.variables`
     row : int
-        row used with grid manager, specifies place where checkbutton will be displayed
+        row used with grid manager (place where button will be shown)
     column : int
-        column used with grid manager, specifies place where checkbutton will be displayed
+        column used with grid manager (place where button will be shown)
     &#34;&#34;&#34;
-
     create_label(self, f&#39;{name}: &#39;, row, column)
     content = tk.BooleanVar(self)
-    tk.Checkbutton(self, variable=content).grid(row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
+    tk.Checkbutton(self, variable=content).grid(
+        row=row, column=column + 1, padx=3, sticky=&#39;W&#39;)
     self.variables[name] = content</code></pre>
 </details>
 </dd>
@@ -1219,9 +1247,9 @@ label with set name.</p>
 <span>def <span class="ident">create_entry</span></span>(<span>self, name, value, row, column)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Displays entry.</p>
-<p>Binds <code>tk.Entry</code> to <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> frame. Creates <code>tk.StringVar</code> and stores it in <code>self.variables</code> with key passed in
-name.</p>
+<section class="desc"><p>Display entry.</p>
+<p>Bind <code>tk.Entry</code> to <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> frame. Create <code>tk.StringVar</code> and store it in
+<code>self.variables</code> with key passed in name.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -1229,19 +1257,20 @@ name.</p>
 <dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
 <dd>default value displayed in entry on application startup</dd>
 <dt><strong><code>row</code></strong> :&ensp;<code>int</code></dt>
-<dd>row used with grid manager, specifies place where entry will be displayed</dd>
+<dd>row used with grid manager (place where entry will be displayed)</dd>
 <dt><strong><code>column</code></strong> :&ensp;<code>int</code></dt>
-<dd>column used with grid manager, specifies place where entry will be displayed</dd>
+<dd>column used with grid manager (place where entry will be displayed)</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L338-L358" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def create_entry(self, name, value, row, column):
-    &#34;&#34;&#34;Displays entry.
+    &#34;&#34;&#34;Display entry.
 
-    Binds `tk.Entry` to `Form` frame. Creates `tk.StringVar` and stores it in `self.variables` with key passed in
-    name.
+    Bind `tk.Entry` to `Form` frame. Create `tk.StringVar` and store it in
+    `self.variables` with key passed in name.
 
     Parameters
     ----------
@@ -1250,29 +1279,53 @@ name.</p>
     value : str
         default value displayed in entry on application startup
     row : int
-        row used with grid manager, specifies place where entry will be displayed
+        row used with grid manager (place where entry will be displayed)
     column : int
-        column used with grid manager, specifies place where entry will be displayed
+        column used with grid manager (place where entry will be displayed)
     &#34;&#34;&#34;
-
     content = tk.StringVar(self, value=value)
-    tk.Entry(self, width=40, textvariable=content).grid(row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
+    tk.Entry(self, width=40, textvariable=content).grid(
+        row=row, column=column, padx=10, pady=2, sticky=&#39;W&#39;)
     self.variables[name] = content</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.gui.Form.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self)</span>
+<span>def <span class="ident">get</span></span>(<span>self, silent=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns dictionary with fields names and their values.</p></section>
+<section class="desc"><p>Return dictionary with fields names and their values from form.</p>
+<p>Values are cast to types expected in database. When <code>silent</code> is set to
+<code>False</code> display error window in case of incorrect field value.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>silent</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>specifies if error windows are shown or not in case of wrong values</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L287-L306" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get(self):
-    &#34;&#34;&#34;Returns dictionary with fields names and their values.&#34;&#34;&#34;
+<pre><code class="python">def get(self, silent=False):
+    &#34;&#34;&#34;Return dictionary with fields names and their values from form.
 
-    return {key: value.get() for key, value in self.variables.items()}</code></pre>
+    Values are cast to types expected in database. When `silent` is set to
+    `False` display error window in case of incorrect field value.
+
+    Parameters
+    ----------
+    silent : bool, optional
+        specifies if error windows are shown or not in case of wrong values
+    &#34;&#34;&#34;
+    record = Record()
+    for key, value in self.variables.items():
+        try:
+            record[key] = value.get()
+        except ValueError as error:
+            if not silent:
+                self.menu.show_error(error, key)
+    record.cast()
+    return record</code></pre>
 </details>
 </dd>
 </dl>
@@ -1282,15 +1335,17 @@ name.</p>
 <span>(</span><span>title, size)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Configures GUI. Places individual widgets and allows their communication. Extends <code>tk.Tk</code>.</p>
+<section class="desc"><p>Configure GUI.</p>
+<p>Place individual widgets and allow their communication. Extend <code>tk.Tk</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>form</code></strong> :&ensp;<a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a></dt>
-<dd>used for communication with <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> widget</dd>
-<dt><strong><code>search</code></strong> :&ensp;<a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a></dt>
-<dd>used for communication with <a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a> widget</dd>
+<dt><strong><code>form</code></strong> :&ensp;<code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code></dt>
+<dd>used for communication with <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> widget</dd>
+<dt><strong><code>search</code></strong> :&ensp;<code><a title="bookmeister.gui.Search" href="#bookmeister.gui.Search">Search</a></code></dt>
+<dd>used for communication with <code><a title="bookmeister.gui.Search" href="#bookmeister.gui.Search">Search</a></code> widget</dd>
 </dl>
+<p>Set window properties and fill it with elements.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>title</code></strong> :&ensp;<code>str</code></dt>
@@ -1301,10 +1356,13 @@ name.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L61-L134" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Gui(tk.Tk):
     &#34;&#34;&#34;
-    Configures GUI. Places individual widgets and allows their communication. Extends `tk.Tk`.
+    Configure GUI.
+
+    Place individual widgets and allow their communication. Extend `tk.Tk`.
 
     ...
 
@@ -1317,7 +1375,8 @@ name.</p>
     &#34;&#34;&#34;
 
     def __init__(self, title, size):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Set window properties and fill it with elements.
+
         Parameters
         ----------
         title : str
@@ -1325,7 +1384,6 @@ name.</p>
         size : str
             application size in format &#39;heightxwidth&#39;
         &#34;&#34;&#34;
-
         super().__init__(className=title)
         self.title(title)
         self.geometry(size)
@@ -1338,18 +1396,39 @@ name.</p>
         Image(self).grid(row=2, column=0, padx=50, sticky=&#39;W&#39;)
         Buttons(self).grid(row=3, column=0, sticky=&#39;E&#39;)
 
-    def get_icon(self):
-        &#34;&#34;&#34;Gets icon path.
+    def show_error(self, message, field=None):
+        &#34;&#34;&#34;Display error window.
 
-        According to type of installation picks method to get icon path. It can by obtained from module directory or
-        from `_MEIPASS` when application is built.
+        When field is specified incorrect form value from that field is
+        cleared. Otherwise clear whole form.
+
+        Parameters
+        ----------
+        message : str
+            text displayed in error window
+        field : str or None, optional
+            name of field where value will be cleared, default None: whole form
+        &#34;&#34;&#34;
+        if field is None:
+            self.form.clear()
+        else:
+            self.form.variables[field].set(&#39;&#39;)
+            message = f&#39;Wrong value for field &#34;{field}&#34;. {message}&#39;
+        msg.showerror(&#39;Error&#39;, message)
+
+    @staticmethod
+    def get_icon():
+        &#34;&#34;&#34;Get icon path.
+
+        According to type of installation pick method to get icon path. It can
+        be obtained from module directory or from `_MEIPASS` when application
+        is built.
 
         Returns
         -------
         Path
             `pathlib.Path` object containing information about icon path
         &#34;&#34;&#34;
-
         directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
         icon_path = Path(directory) / &#39;bookmeister.png&#39;
         return icon_path</code></pre>
@@ -1360,15 +1439,16 @@ name.</p>
 <li>tkinter.Misc</li>
 <li>tkinter.Wm</li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="bookmeister.gui.Gui.get_icon"><code class="name flex">
-<span>def <span class="ident">get_icon</span></span>(<span>self)</span>
+<span>def <span class="ident">get_icon</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets icon path.</p>
-<p>According to type of installation picks method to get icon path. It can by obtained from module directory or
-from <code>_MEIPASS</code> when application is built.</p>
+<section class="desc"><p>Get icon path.</p>
+<p>According to type of installation pick method to get icon path. It can
+be obtained from module directory or from <code>_MEIPASS</code> when application
+is built.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>Path</code></dt>
@@ -1377,22 +1457,67 @@ from <code>_MEIPASS</code> when application is built.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L119-L134" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def get_icon(self):
-    &#34;&#34;&#34;Gets icon path.
+<pre><code class="python">@staticmethod
+def get_icon():
+    &#34;&#34;&#34;Get icon path.
 
-    According to type of installation picks method to get icon path. It can by obtained from module directory or
-    from `_MEIPASS` when application is built.
+    According to type of installation pick method to get icon path. It can
+    be obtained from module directory or from `_MEIPASS` when application
+    is built.
 
     Returns
     -------
     Path
         `pathlib.Path` object containing information about icon path
     &#34;&#34;&#34;
-
     directory = getattr(sys, &#39;_MEIPASS&#39;, Path(__file__).parent.absolute())
     icon_path = Path(directory) / &#39;bookmeister.png&#39;
     return icon_path</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="bookmeister.gui.Gui.show_error"><code class="name flex">
+<span>def <span class="ident">show_error</span></span>(<span>self, message, field=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Display error window.</p>
+<p>When field is specified incorrect form value from that field is
+cleared. Otherwise clear whole form.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>str</code></dt>
+<dd>text displayed in error window</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>str</code> or <code>None</code>, optional</dt>
+<dd>name of field where value will be cleared, default None: whole form</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L99-L117" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def show_error(self, message, field=None):
+    &#34;&#34;&#34;Display error window.
+
+    When field is specified incorrect form value from that field is
+    cleared. Otherwise clear whole form.
+
+    Parameters
+    ----------
+    message : str
+        text displayed in error window
+    field : str or None, optional
+        name of field where value will be cleared, default None: whole form
+    &#34;&#34;&#34;
+    if field is None:
+        self.form.clear()
+    else:
+        self.form.variables[field].set(&#39;&#39;)
+        message = f&#39;Wrong value for field &#34;{field}&#34;. {message}&#39;
+    msg.showerror(&#39;Error&#39;, message)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1402,24 +1527,22 @@ from <code>_MEIPASS</code> when application is built.</p>
 <span>(</span><span>menu)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates image widget. Extends <code>tk.Frame</code>.</p>
+<section class="desc"><p>Create image widget. Extend <code>tk.Frame</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>menu</code></strong> :&ensp;<a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a></dt>
-<dd>used to bind <a title="bookmeister.gui.Image" href="#bookmeister.gui.Image"><code>Image</code></a> widget and communication with other menu elements</dd>
+<dt><strong><code>menu</code></strong> :&ensp;<code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></dt>
+<dd>used to bind <code><a title="bookmeister.gui.Image" href="#bookmeister.gui.Image">Image</a></code> widget and communication with other menu elements</dd>
 </dl>
-<p>Construct a frame widget with the parent MASTER.</p>
-<p>Valid resource names: background, bd, bg, borderwidth, class,
-colormap, container, cursor, height, highlightbackground,
-highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></section>
+<p>Create buttons for interaction with images.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L361-L439" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Image(tk.Frame):
     &#34;&#34;&#34;
-    Creates image widget. Extends `tk.Frame`.
+    Create image widget. Extend `tk.Frame`.
 
     ...
 
@@ -1430,42 +1553,72 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
     &#34;&#34;&#34;
 
     def __init__(self, menu):
+        &#34;&#34;&#34;Create buttons for interaction with images.&#34;&#34;&#34;
         super().__init__(menu)
         self.menu = menu
-        tk.Button(self, text=&#39;Add cover&#39;, width=8, command=self.add_image).grid(row=0, column=0, pady=15)
-        tk.Button(self, text=&#39;View cover&#39;, width=8, command=self.view_image).grid(row=0, column=1, sticky=&#39;W&#39;)
+        tk.Button(self, text=&#39;Add cover&#39;, width=8,
+                  command=self.add_image).grid(row=0, column=0, pady=15)
+        tk.Button(self, text=&#39;View cover&#39;, width=8,
+                  command=self.view_image).grid(row=0, column=1, sticky=&#39;W&#39;)
 
     def add_image(self):
-        &#34;&#34;&#34;Updates selected record image in database.
+        &#34;&#34;&#34;Update selected record image in database.
 
-        When record is selected in `Searchbox` opens window where user can pick image file. Then converts image with
-        `bookmeister.picture` module. If it succeed adds it to database else displays error window.
+        When record is selected in `Searchbox` open window where user can pick
+        image file. Then convert image with `bookmeister.picture` module. If
+        it succeed add it to database else display error window.
         &#34;&#34;&#34;
-
         selected = self.menu.search.box.get()
         if selected:
             path = askopenfile(initialdir=Path.home())
             if path:
-                image = Picture(path.name).get()
-                if image:
-                    if Database().update(selected, {&#39;Cover&#39;: image}):
-                        self.menu.search.box.assign_image(image)
-                        msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
-                    else:
-                        show_no_connection()
+                if self.verify(path.name):
+                    image_id = Database().upload_image(path.name)
+                    if image_id:
+                        if Database().update(selected, {&#39;Cover&#39;: image_id}):
+                            self.menu.search.box.assign_image(image_id)
+                            msg.showinfo(&#39;Done&#39;,
+                                         &#39;Image successfully saved.&#39;)
+                        else:
+                            show_no_connection()
                 else:
                     msg.showerror(&#39;Error&#39;, &#39;Wrong image file format.&#39;)
 
     def view_image(self):
-        &#34;&#34;&#34;Displays selected record image.
+        &#34;&#34;&#34;Display selected record image.
 
-        When record is selected in `Searchbox` opens its image with `bookmeister.picture` module. If operation failed
-        displays error.
+        When record is selected in `Searchbox` open its image in browser. If
+        operation failed display error.
         &#34;&#34;&#34;
-
         if self.menu.search.box.get():
-            if not Picture.show(self.menu.search.box.get_image()):
-                msg.showerror(&#39;Error&#39;, &#39;Could not open image. File may be corrupted or not uploaded yet.&#39;)</code></pre>
+            picture = self.menu.search.box.get_image()
+            if picture:
+                self.open_image(picture)
+            else:
+                msg.showerror(&#39;Error&#39;, &#39;There is no image uploaded yet.&#39;)
+
+    @staticmethod
+    def open_image(link):
+        &#34;&#34;&#34;Open image from database media archive in browser.
+
+        Parameters
+        ----------
+        link : str
+            identification number of image from database media archive
+        &#34;&#34;&#34;
+        url = Database().url + &#39;/media/&#39; + link
+        webbrowser.open(url, new=True)
+
+    @staticmethod
+    def verify(path):
+        &#34;&#34;&#34;Return True if under set path there is valid image else False.&#34;&#34;&#34;
+        try:
+            image = PIL.Image.open(path)
+            image.verify()
+            image.close()
+            return True
+        except (FileNotFoundError, PIL.UnidentifiedImageError):
+            return False</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1477,37 +1630,94 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
 <li>tkinter.Place</li>
 <li>tkinter.Grid</li>
 </ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="bookmeister.gui.Image.open_image"><code class="name flex">
+<span>def <span class="ident">open_image</span></span>(<span>link)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Open image from database media archive in browser.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>link</code></strong> :&ensp;<code>str</code></dt>
+<dd>identification number of image from database media archive</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L418-L428" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@staticmethod
+def open_image(link):
+    &#34;&#34;&#34;Open image from database media archive in browser.
+
+    Parameters
+    ----------
+    link : str
+        identification number of image from database media archive
+    &#34;&#34;&#34;
+    url = Database().url + &#39;/media/&#39; + link
+    webbrowser.open(url, new=True)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.gui.Image.verify"><code class="name flex">
+<span>def <span class="ident">verify</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Return True if under set path there is valid image else False.</p></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L430-L439" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">@staticmethod
+def verify(path):
+    &#34;&#34;&#34;Return True if under set path there is valid image else False.&#34;&#34;&#34;
+    try:
+        image = PIL.Image.open(path)
+        image.verify()
+        image.close()
+        return True
+    except (FileNotFoundError, PIL.UnidentifiedImageError):
+        return False</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="bookmeister.gui.Image.add_image"><code class="name flex">
 <span>def <span class="ident">add_image</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Updates selected record image in database.</p>
-<p>When record is selected in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> opens window where user can pick image file. Then converts image with
-<a title="bookmeister.picture" href="picture.html"><code>bookmeister.picture</code></a> module. If it succeed adds it to database else displays error window.</p></section>
+<section class="desc"><p>Update selected record image in database.</p>
+<p>When record is selected in <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> open window where user can pick
+image file. Then convert image with <code>bookmeister.picture</code> module. If
+it succeed add it to database else display error window.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L382-L403" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add_image(self):
-    &#34;&#34;&#34;Updates selected record image in database.
+    &#34;&#34;&#34;Update selected record image in database.
 
-    When record is selected in `Searchbox` opens window where user can pick image file. Then converts image with
-    `bookmeister.picture` module. If it succeed adds it to database else displays error window.
+    When record is selected in `Searchbox` open window where user can pick
+    image file. Then convert image with `bookmeister.picture` module. If
+    it succeed add it to database else display error window.
     &#34;&#34;&#34;
-
     selected = self.menu.search.box.get()
     if selected:
         path = askopenfile(initialdir=Path.home())
         if path:
-            image = Picture(path.name).get()
-            if image:
-                if Database().update(selected, {&#39;Cover&#39;: image}):
-                    self.menu.search.box.assign_image(image)
-                    msg.showinfo(&#39;Done&#39;, &#39;Record successfully saved to database.&#39;)
-                else:
-                    show_no_connection()
+            if self.verify(path.name):
+                image_id = Database().upload_image(path.name)
+                if image_id:
+                    if Database().update(selected, {&#39;Cover&#39;: image_id}):
+                        self.menu.search.box.assign_image(image_id)
+                        msg.showinfo(&#39;Done&#39;,
+                                     &#39;Image successfully saved.&#39;)
+                    else:
+                        show_no_connection()
             else:
                 msg.showerror(&#39;Error&#39;, &#39;Wrong image file format.&#39;)</code></pre>
 </details>
@@ -1516,23 +1726,26 @@ highlightcolor, highlightthickness, relief, takefocus, visual, width.</p></secti
 <span>def <span class="ident">view_image</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Displays selected record image.</p>
-<p>When record is selected in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> opens its image with <a title="bookmeister.picture" href="picture.html"><code>bookmeister.picture</code></a> module. If operation failed
-displays error.</p></section>
+<section class="desc"><p>Display selected record image.</p>
+<p>When record is selected in <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> open its image in browser. If
+operation failed display error.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L405-L416" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def view_image(self):
-    &#34;&#34;&#34;Displays selected record image.
+    &#34;&#34;&#34;Display selected record image.
 
-    When record is selected in `Searchbox` opens its image with `bookmeister.picture` module. If operation failed
-    displays error.
+    When record is selected in `Searchbox` open its image in browser. If
+    operation failed display error.
     &#34;&#34;&#34;
-
     if self.menu.search.box.get():
-        if not Picture.show(self.menu.search.box.get_image()):
-            msg.showerror(&#39;Error&#39;, &#39;Could not open image. File may be corrupted or not uploaded yet.&#39;)</code></pre>
+        picture = self.menu.search.box.get_image()
+        if picture:
+            self.open_image(picture)
+        else:
+            msg.showerror(&#39;Error&#39;, &#39;There is no image uploaded yet.&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1542,25 +1755,28 @@ displays error.</p></section>
 <span>(</span><span>menu)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates search widget. Extends <code>tk.Frame</code>.</p>
+<section class="desc"><p>Create search widget. Extend <code>tk.Frame</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>box</code></strong> :&ensp;<a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a></dt>
-<dd>used for communication with <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a></dd>
+<dt><strong><code>box</code></strong> :&ensp;<code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code></dt>
+<dd>used for communication with <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code></dd>
 </dl>
+<p>Create search bar elements.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>menu</code></strong> :&ensp;<a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui"><code>Gui</code></a></dt>
-<dd>container where <a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a> widget will be bound, used to pass <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> variables</dd>
+<dt><strong><code>menu</code></strong> :&ensp;<code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></dt>
+<dd>container where <code><a title="bookmeister.gui.Search" href="#bookmeister.gui.Search">Search</a></code> widget will be bound, used to pass <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code>
+variables</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L137-L161" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Search(tk.Frame):
     &#34;&#34;&#34;
-    Creates search widget. Extends `tk.Frame`.
+    Create search widget. Extend `tk.Frame`.
 
     ...
 
@@ -1571,13 +1787,14 @@ displays error.</p></section>
     &#34;&#34;&#34;
 
     def __init__(self, menu):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Create search bar elements.
+
         Parameters
         ----------
         menu : Gui
-            container where `Search` widget will be bound, used to pass `Form` variables
+            container where `Search` widget will be bound, used to pass `Form`
+            variables
         &#34;&#34;&#34;
-
         super().__init__(menu)
         create_label(self, &#39;Search results:&#39;, 0, 0)
         self.box = Searchbox(self, menu.form.variables)
@@ -1599,44 +1816,49 @@ displays error.</p></section>
 <span>(</span><span>frame, variables)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates searchbox. Extends <code>tk.Combobox</code>.</p>
+<section class="desc"><p>Create searchbox. Extend <code>tk.Combobox</code>.</p>
 <p>&hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
-<dd>has keys as displayed text in <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> and values as dictionaries holding information about records</dd>
+<dd>has keys as displayed text in <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> and values as dictionaries
+holding information about records</dd>
 <dt><strong><code>variables</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary storing keys used in <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> and corresponding to them <code>tk.StringVar</code>s, modifying its values change
-text seen in form</dd>
+<dd>dictionary storing keys used in <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> and corresponding to them
+<code>tk.StringVar</code>s, modifying its values change text seen in form</dd>
 </dl>
+<p>Configure searchbox.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>frame</code></strong> :&ensp;<a title="bookmeister.gui.Search" href="#bookmeister.gui.Search"><code>Search</code></a></dt>
-<dd>container where <a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox"><code>Searchbox</code></a> will be bound</dd>
+<dt><strong><code>frame</code></strong> :&ensp;<code><a title="bookmeister.gui.Search" href="#bookmeister.gui.Search">Search</a></code></dt>
+<dd>container where <code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code> will be bound</dd>
 <dt><strong><code>variables</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary with <a title="bookmeister.gui.Form" href="#bookmeister.gui.Form"><code>Form</code></a> variables</dd>
+<dd>dictionary with <code><a title="bookmeister.gui.Form" href="#bookmeister.gui.Form">Form</a></code> variables</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L164-L258" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Searchbox(ttk.Combobox):
     &#34;&#34;&#34;
-    Creates searchbox. Extends `tk.Combobox`.
+    Create searchbox. Extend `tk.Combobox`.
 
     ...
 
     Attributes
     ----------
     values : dict
-        has keys as displayed text in `Searchbox` and values as dictionaries holding information about records
+        has keys as displayed text in `Searchbox` and values as dictionaries
+        holding information about records
     variables : dict
-        dictionary storing keys used in `Form` and corresponding to them `tk.StringVar`s, modifying its values change
-        text seen in form
+        dictionary storing keys used in `Form` and corresponding to them
+        `tk.StringVar`s, modifying its values change text seen in form
     &#34;&#34;&#34;
 
     def __init__(self, frame, variables):
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Configure searchbox.
+
         Parameters
         ----------
         frame : Search
@@ -1644,74 +1866,72 @@ text seen in form</dd>
         variables : dict
             dictionary with `Form` variables
         &#34;&#34;&#34;
-
         super().__init__(frame, width=50, state=&#39;readonly&#39;)
         self.values = {}
         self.variables = variables
         self.bind(&#39;&lt;&lt;ComboboxSelected&gt;&gt;&#39;, self.do_on_select)
 
-    def assing_values(self, values):
-        &#34;&#34;&#34;Fills searchbox with values.
+    def assign_values(self, values):
+        &#34;&#34;&#34;Fill searchbox with values.
 
-        Clears previously loaded elements. For each record in passed values creates text which is placed in searchbox.
-        Stores it as key in `self.values` dictionary with corresponding it record values (dictionary). Then picks first
-        record and fills form with its values.
+        Clear previously loaded elements. For each record in passed values
+        create text which is placed in searchbox. Store it as key in
+        `self.values` dictionary with corresponding it record values
+        (dictionary). Then pick first record and fill form with its values.
 
         Parameters
         ----------
         values : list
             list with database records, their data stored in dictionaries
         &#34;&#34;&#34;
-
         self.clear()
         try:
-            for value in values:
-                self.values[f&#39;{value[&#34;ISBN&#34;]} &#34;{value[&#34;Title&#34;]}&#34; by {value[&#34;Author&#34;]}&#39;] = value
+            for data in values:
+                title = f&#39;{data[&#34;ISBN&#34;]} &#34;{data[&#34;Title&#34;]}&#34; by {data[&#34;Author&#34;]}&#39;
+                self.values[title] = data
             self[&#39;values&#39;] = sorted(list(self.values.keys()))
             self.current(0)
             self.do_on_select()
         except (TypeError, tk.TclError):
-            msg.showwarning(&#39;No records&#39;, &#39;Could not find any results to set criteria.&#39;)
+            msg.showwarning(&#39;No records&#39;,
+                            &#39;Could not find any results to set criteria.&#39;)
 
     def assign_image(self, image):
-        &#34;&#34;&#34;Stores image data in `self.values`.
+        &#34;&#34;&#34;Store image data in `self.values`.
 
         Parameters
         ----------
         image : str
-            string representing image data converted with `bookmeister.picture` module
+            string representing image id
         &#34;&#34;&#34;
-
         self.values[ttk.Combobox.get(self)][&#39;Cover&#39;] = image
 
     def do_on_select(self, *_):
-        &#34;&#34;&#34;Fills form with values from selected record.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Fill form with values from selected record.&#34;&#34;&#34;
         for key in self.variables.keys():
             try:
-                self.variables[key].set(self.values[ttk.Combobox.get(self)][key])
-            except KeyError:
+                self.variables[key].set(
+                    self.values[ttk.Combobox.get(self)][key])
+            except KeyError:  # pragma: no cover
                 pass
 
     def get(self):
-        &#34;&#34;&#34;Returns record id string when selected or None and displays error.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Return record id string when selected or None and display error.&#34;&#34;&#34;
         try:
             return self.values[ttk.Combobox.get(self)][&#39;_id&#39;]
         except KeyError:
-            msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation please select record first.&#39;)
+            msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation &#39;
+                                   &#39;please select record first.&#39;)
 
     def get_image(self):
-        &#34;&#34;&#34;Returns image data string when it exists else None.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Return image id when it exists else None.&#34;&#34;&#34;
         try:
             return self.values[ttk.Combobox.get(self)][&#39;Cover&#39;]
         except KeyError:
             return None
 
     def clear(self):
-        &#34;&#34;&#34;Clears positions from searchbox.&#34;&#34;&#34;
-
+        &#34;&#34;&#34;Clear positions from searchbox.&#34;&#34;&#34;
         self.values.clear()
         self.set(&#39;&#39;)
         self[&#39;values&#39;] = []</code></pre>
@@ -1736,36 +1956,37 @@ text seen in form</dd>
 <span>def <span class="ident">assign_image</span></span>(<span>self, image)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stores image data in <code>self.values</code>.</p>
+<section class="desc"><p>Store image data in <code>self.values</code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>image</code></strong> :&ensp;<code>str</code></dt>
-<dd>string representing image data converted with <a title="bookmeister.picture" href="picture.html"><code>bookmeister.picture</code></a> module</dd>
+<dd>string representing image id</dd>
 </dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L220-L228" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def assign_image(self, image):
-    &#34;&#34;&#34;Stores image data in `self.values`.
+    &#34;&#34;&#34;Store image data in `self.values`.
 
     Parameters
     ----------
     image : str
-        string representing image data converted with `bookmeister.picture` module
+        string representing image id
     &#34;&#34;&#34;
-
     self.values[ttk.Combobox.get(self)][&#39;Cover&#39;] = image</code></pre>
 </details>
 </dd>
-<dt id="bookmeister.gui.Searchbox.assing_values"><code class="name flex">
-<span>def <span class="ident">assing_values</span></span>(<span>self, values)</span>
+<dt id="bookmeister.gui.Searchbox.assign_values"><code class="name flex">
+<span>def <span class="ident">assign_values</span></span>(<span>self, values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Fills searchbox with values.</p>
-<p>Clears previously loaded elements. For each record in passed values creates text which is placed in searchbox.
-Stores it as key in <code>self.values</code> dictionary with corresponding it record values (dictionary). Then picks first
-record and fills form with its values.</p>
+<section class="desc"><p>Fill searchbox with values.</p>
+<p>Clear previously loaded elements. For each record in passed values
+create text which is placed in searchbox. Store it as key in
+<code>self.values</code> dictionary with corresponding it record values
+(dictionary). Then pick first record and fill form with its values.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>values</code></strong> :&ensp;<code>list</code></dt>
@@ -1774,43 +1995,46 @@ record and fills form with its values.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L195-L218" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def assing_values(self, values):
-    &#34;&#34;&#34;Fills searchbox with values.
+<pre><code class="python">def assign_values(self, values):
+    &#34;&#34;&#34;Fill searchbox with values.
 
-    Clears previously loaded elements. For each record in passed values creates text which is placed in searchbox.
-    Stores it as key in `self.values` dictionary with corresponding it record values (dictionary). Then picks first
-    record and fills form with its values.
+    Clear previously loaded elements. For each record in passed values
+    create text which is placed in searchbox. Store it as key in
+    `self.values` dictionary with corresponding it record values
+    (dictionary). Then pick first record and fill form with its values.
 
     Parameters
     ----------
     values : list
         list with database records, their data stored in dictionaries
     &#34;&#34;&#34;
-
     self.clear()
     try:
-        for value in values:
-            self.values[f&#39;{value[&#34;ISBN&#34;]} &#34;{value[&#34;Title&#34;]}&#34; by {value[&#34;Author&#34;]}&#39;] = value
+        for data in values:
+            title = f&#39;{data[&#34;ISBN&#34;]} &#34;{data[&#34;Title&#34;]}&#34; by {data[&#34;Author&#34;]}&#39;
+            self.values[title] = data
         self[&#39;values&#39;] = sorted(list(self.values.keys()))
         self.current(0)
         self.do_on_select()
     except (TypeError, tk.TclError):
-        msg.showwarning(&#39;No records&#39;, &#39;Could not find any results to set criteria.&#39;)</code></pre>
+        msg.showwarning(&#39;No records&#39;,
+                        &#39;Could not find any results to set criteria.&#39;)</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.gui.Searchbox.clear"><code class="name flex">
 <span>def <span class="ident">clear</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Clears positions from searchbox.</p></section>
+<section class="desc"><p>Clear positions from searchbox.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L254-L258" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def clear(self):
-    &#34;&#34;&#34;Clears positions from searchbox.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Clear positions from searchbox.&#34;&#34;&#34;
     self.values.clear()
     self.set(&#39;&#39;)
     self[&#39;values&#39;] = []</code></pre>
@@ -1820,18 +2044,19 @@ record and fills form with its values.</p>
 <span>def <span class="ident">do_on_select</span></span>(<span>self, *_)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Fills form with values from selected record.</p></section>
+<section class="desc"><p>Fill form with values from selected record.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L230-L237" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def do_on_select(self, *_):
-    &#34;&#34;&#34;Fills form with values from selected record.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Fill form with values from selected record.&#34;&#34;&#34;
     for key in self.variables.keys():
         try:
-            self.variables[key].set(self.values[ttk.Combobox.get(self)][key])
-        except KeyError:
+            self.variables[key].set(
+                self.values[ttk.Combobox.get(self)][key])
+        except KeyError:  # pragma: no cover
             pass</code></pre>
 </details>
 </dd>
@@ -1839,32 +2064,33 @@ record and fills form with its values.</p>
 <span>def <span class="ident">get</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns record id string when selected or None and displays error.</p></section>
+<section class="desc"><p>Return record id string when selected or None and display error.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L239-L245" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get(self):
-    &#34;&#34;&#34;Returns record id string when selected or None and displays error.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Return record id string when selected or None and display error.&#34;&#34;&#34;
     try:
         return self.values[ttk.Combobox.get(self)][&#39;_id&#39;]
     except KeyError:
-        msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation please select record first.&#39;)</code></pre>
+        msg.showerror(&#39;Error&#39;, &#39;No record selected. To perform operation &#39;
+                               &#39;please select record first.&#39;)</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.gui.Searchbox.get_image"><code class="name flex">
 <span>def <span class="ident">get_image</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns image data string when it exists else None.</p></section>
+<section class="desc"><p>Return image id when it exists else None.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/gui.py#L247-L252" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def get_image(self):
-    &#34;&#34;&#34;Returns image data string when it exists else None.&#34;&#34;&#34;
-
+    &#34;&#34;&#34;Return image id when it exists else None.&#34;&#34;&#34;
     try:
         return self.values[ttk.Combobox.get(self)][&#39;Cover&#39;]
     except KeyError:
@@ -1877,6 +2103,7 @@ record and fills form with its values.</p>
 </section>
 </article>
 <nav id="sidebar">
+<header><img src="https://raw.githubusercontent.com/ethru/pdoc3-mdnotes/develop/pdoc3_mdnotes/icons/mdnotes.png" alt=""></header>
 <h1>Index</h1>
 <div class="toc">
 <ul>
@@ -1907,7 +2134,6 @@ record and fills form with its values.</p>
 <li><code><a title="bookmeister.gui.Buttons.process_data" href="#bookmeister.gui.Buttons.process_data">process_data</a></code></li>
 <li><code><a title="bookmeister.gui.Buttons.revise" href="#bookmeister.gui.Buttons.revise">revise</a></code></li>
 <li><code><a title="bookmeister.gui.Buttons.search" href="#bookmeister.gui.Buttons.search">search</a></code></li>
-<li><code><a title="bookmeister.gui.Buttons.show_error" href="#bookmeister.gui.Buttons.show_error">show_error</a></code></li>
 </ul>
 </li>
 <li>
@@ -1923,12 +2149,15 @@ record and fills form with its values.</p>
 <h4><code><a title="bookmeister.gui.Gui" href="#bookmeister.gui.Gui">Gui</a></code></h4>
 <ul class="">
 <li><code><a title="bookmeister.gui.Gui.get_icon" href="#bookmeister.gui.Gui.get_icon">get_icon</a></code></li>
+<li><code><a title="bookmeister.gui.Gui.show_error" href="#bookmeister.gui.Gui.show_error">show_error</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="bookmeister.gui.Image" href="#bookmeister.gui.Image">Image</a></code></h4>
 <ul class="">
 <li><code><a title="bookmeister.gui.Image.add_image" href="#bookmeister.gui.Image.add_image">add_image</a></code></li>
+<li><code><a title="bookmeister.gui.Image.open_image" href="#bookmeister.gui.Image.open_image">open_image</a></code></li>
+<li><code><a title="bookmeister.gui.Image.verify" href="#bookmeister.gui.Image.verify">verify</a></code></li>
 <li><code><a title="bookmeister.gui.Image.view_image" href="#bookmeister.gui.Image.view_image">view_image</a></code></li>
 </ul>
 </li>
@@ -1939,7 +2168,7 @@ record and fills form with its values.</p>
 <h4><code><a title="bookmeister.gui.Searchbox" href="#bookmeister.gui.Searchbox">Searchbox</a></code></h4>
 <ul class="two-column">
 <li><code><a title="bookmeister.gui.Searchbox.assign_image" href="#bookmeister.gui.Searchbox.assign_image">assign_image</a></code></li>
-<li><code><a title="bookmeister.gui.Searchbox.assing_values" href="#bookmeister.gui.Searchbox.assing_values">assing_values</a></code></li>
+<li><code><a title="bookmeister.gui.Searchbox.assign_values" href="#bookmeister.gui.Searchbox.assign_values">assign_values</a></code></li>
 <li><code><a title="bookmeister.gui.Searchbox.clear" href="#bookmeister.gui.Searchbox.clear">clear</a></code></li>
 <li><code><a title="bookmeister.gui.Searchbox.do_on_select" href="#bookmeister.gui.Searchbox.do_on_select">do_on_select</a></code></li>
 <li><code><a title="bookmeister.gui.Searchbox.get" href="#bookmeister.gui.Searchbox.get">get</a></code></li>
@@ -1952,7 +2181,7 @@ record and fills form with its values.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

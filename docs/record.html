@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.8.1" />
 <title>bookmeister.record API documentation</title>
 <meta name="description" content="Record …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -21,11 +21,12 @@
 </header>
 <section id="section-intro">
 <h4 id="record">Record</h4>
-<p>Module collecting functions, classes and methods needed for representation and validation of data which will be stored
-in database. <code>VALUES</code> holds information about database keys, example values and accepted length of each field. Function
-<a title="bookmeister.record.cast_values" href="#bookmeister.record.cast_values"><code>cast_values()</code></a> allows to change data types in dictionary (containing strings from <code>tkinter</code> entries) to those expected
-in database. <a title="bookmeister.record.Validator" href="#bookmeister.record.Validator"><code>Validator</code></a> class runs series of tests for data and notifies when values are incorrect. Modules used:
-<code>dataclassess</code> and <code>datetime</code>.</p>
+<p>Module collecting functions necessary to validate data from application form.
+Each of them raises <code>ValueError</code> when set value is not correct. Values are
+supposed to be stored in class <code><a title="bookmeister.record.Record" href="#bookmeister.record.Record">Record</a></code> which extends dictionary and maps
+proper validation function with expected database key. All database fields are
+added to <code>FIELDS</code>. <code>datetime</code> module is used to acquire current year during
+validation.</p>
 <h4 id="license">License</h4>
 <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -37,14 +38,16 @@ SOFTWARE.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L0-L186" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;#### Record
 
-Module collecting functions, classes and methods needed for representation and validation of data which will be stored
-in database. `VALUES` holds information about database keys, example values and accepted length of each field. Function
-`cast_values` allows to change data types in dictionary (containing strings from `tkinter` entries) to those expected
-in database. `Validator` class runs series of tests for data and notifies when values are incorrect. Modules used:
-`dataclassess` and `datetime`.
+Module collecting functions necessary to validate data from application form.
+Each of them raises `ValueError` when set value is not correct. Values are
+supposed to be stored in class `Record` which extends dictionary and maps
+proper validation function with expected database key. All database fields are
+added to `FIELDS`. `datetime` module is used to acquire current year during
+validation.
 
 
 #### License
@@ -59,293 +62,405 @@ SOFTWARE.
 
 from datetime import datetime
 
-from dataclasses import dataclass
+FIELDS = (&#39;Title&#39;, &#39;Author&#39;, &#39;Type&#39;, &#39;Publisher&#39;, &#39;ISBN&#39;, &#39;Release&#39;,
+          &#39;Language&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Price&#39;, &#39;Discount&#39;)
 
 
-def cast_values(values):
-    &#34;&#34;&#34;Casts values to proper type.
+def check_length(text, minimum=1, maximum=100):
+    &#34;&#34;&#34;Check if length of passed text is between set values.
 
     Parameters
     ----------
-    values : dict
-        dictionary with names of fields and their values, it can contain only one position or each of them
+    text : str
+        string to check if its length is in set range
+    minimum : int, optional
+        minimum value for text length, default is 1
+    maximum : int, optional
+        maximum value for text length, default is 100
 
-    Examples
-    --------
-    &gt;&gt;&gt; query = {&#34;Pages&#34;: &#34;50&#34;, &#34;Price&#34;: &#34;12.95&#34;}
-    &gt;&gt;&gt; cast_values(query)
-    &gt;&gt;&gt; query
-    {&#34;Pages&#34;: 50, &#34;Price&#34;: 12.95}
+    Raises
+    ------
+    ValueError
+        when text length is not in range
+    &#34;&#34;&#34;
+    if not minimum &lt;= len(text) &lt;= maximum:
+        raise ValueError(f&#39;Text length must be {minimum} to {maximum} &#39;
+                         &#39;characters.&#39;)
+
+
+def check_number(value, minimum=0, maximum=9999):
+    &#34;&#34;&#34;Check if passed string is integer between set values.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is integer in set range
+    minimum : int, optional
+        minimum value for accepted number, default is 0
+    maximum : int, optional
+        maximum value for accepted number, default is 9999
+
+    Raises
+    ------
+    ValueError
+        when value cannot be converted to `int` or is not in range
+    &#34;&#34;&#34;
+    try:
+        number = int(value)
+    except ValueError:
+        raise ValueError(&#39;It must be integer.&#39;)
+
+    if not minimum &lt;= number &lt;= maximum:
+        raise ValueError(f&#39;Number must be in range {minimum} to {maximum}.&#39;)
+
+
+def check_isbn(number):
+    &#34;&#34;&#34;Check if ISBN-13 number is correct.
+
+    Check if passed value is digit and its length is equal to 13. Then run
+    calculations to compare result with checksum. If conditions are not met
+    raise ValueError.
+
+    Parameters
+    ----------
+    number : str
+        string to check if it is correct ISBN-13 number
+
+    Raises
+    ------
+    ValueError
+        when value for ISBN-13 is not correct
+    &#34;&#34;&#34;
+    if number.isdigit() and len(number) == 13:
+        n = [int(char) for char in number]
+        control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+        if n[12] == control:
+            return
+    raise ValueError(&#39;Number must be valid ISBN-13 code.&#39;)
+
+
+def check_lang_code(code):
+    &#34;&#34;&#34;Check if language code has two letters.
+
+    Parameters
+    ----------
+    code : str
+        string to check if it is correct language code
+
+    Raises
+    ------
+    ValueError
+        when value for language code is not correct
+    &#34;&#34;&#34;
+    if not code.isalpha() or not len(code) == 2:
+        raise ValueError(&#39;Language code must be two characters. &#39;
+                         &#39;Check ISO 639-1 for more details.&#39;)
+
+
+def check_price(value):
+    &#34;&#34;&#34;Check if passed string is price.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is int or float number with proper precision
+
+    Raises
+    ------
+    ValueError
+        when value contains letters or has too many digits after dot
+    &#34;&#34;&#34;
+    price = value.split(&#39;.&#39;)
+    try:
+        if len(price) &gt; 2:
+            raise ValueError
+        check_number(price[0])
+        check_number(price[1], 0, 99)
+    except IndexError:
+        pass
+    except ValueError:
+        raise ValueError(&#39;Price must be a number with maximum two digits after&#39;
+                         &#39; dot, e.g. &#34;125.75&#34;.&#39;)
+
+
+class Record(dict):
+    &#34;&#34;&#34;
+    Create customized dictionary.
+
+    It validates new elements if their keys are stored in `FIELDS`. Method
+    `check` binds proper function needed for validation. It extends `dict`.
     &#34;&#34;&#34;
 
-    try:
-        values[&#39;Price&#39;] = float(values[&#39;Price&#39;])
-    except (KeyError, ValueError):
-        pass
+    def __setitem__(self, key, value):
+        &#34;&#34;&#34;Extend `__setitem__` method by value check for `FIELDS` elements.&#34;&#34;&#34;
+        if key in FIELDS and isinstance(value, str):
+            self.check(key, value)
+        super(Record, self).__setitem__(key, value)
 
-    for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+    @staticmethod
+    def check(key, value):
+        &#34;&#34;&#34;Map functions which check field value with expected key.&#34;&#34;&#34;
+        if key in (&#39;Title&#39;, &#39;Author&#39;, &#39;Type&#39;, &#39;Publisher&#39;):
+            check_length(value)
+        elif key in (&#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+            args = []
+            if key == &#39;Release&#39;:
+                args.extend((1800, datetime.now().year + 1))
+            if key == &#39;Discount&#39;:
+                args.extend((0, 99))
+            check_number(value, *args)
+        else:
+            {&#39;ISBN&#39;: check_isbn,
+             &#39;Language&#39;: check_lang_code,
+             &#39;Price&#39;: check_price}[key](value)
+
+    def cast(self):
+        &#34;&#34;&#34;Cast `Record` values to type expected in database.&#34;&#34;&#34;
         try:
-            values[field] = int(values[field])
+            self[&#39;Price&#39;] = float(self[&#39;Price&#39;])
         except (KeyError, ValueError):
             pass
 
-
-@dataclass(frozen=True)
-class Record:
-    &#34;&#34;&#34;Used to represent field stored in database. Covers key name, example value, accepted field min and max length.&#34;&#34;&#34;
-
-    name: str
-    value: str
-    range_min: int
-    range_max: int
-
-    def is_length_correct(self, value):
-        &#34;&#34;&#34;Specifies if value has acceptable length.
-
-        Parameters
-        ----------
-        value : str
-            text value which length will be checked
-
-        Returns
-        -------
-        bool
-            True if value length is between `range_min` and `range_max` of `Record` else False
-        &#34;&#34;&#34;
-
-        return self.range_min &lt;= len(value) &lt;= self.range_max
-
-
-VALUES = (
-    Record(&#39;Title&#39;, &#39;From Russia, with Love&#39;, 1, 50),
-    Record(&#39;Author&#39;, &#39;Ian Fleming&#39;, 3, 50),
-    Record(&#39;Type&#39;, &#39;Thriller&#39;, 3, 20),
-    Record(&#39;Publisher&#39;, &#39;Thomas and Mercer&#39;, 1, 30),
-    Record(&#39;ISBN&#39;, &#39;9781612185477&#39;, 13, 13),
-    Record(&#39;Release&#39;, &#39;2012&#39;, 4, 4),
-    Record(&#39;Language&#39;, &#39;EN&#39;, 2, 2),
-    Record(&#39;Pages&#39;, &#39;181&#39;, 1, 4),
-    Record(&#39;Quantity&#39;, &#39;10&#39;, 1, 3),
-    Record(&#39;Price&#39;, &#39;125.50&#39;, 1, 6),
-    Record(&#39;Discount&#39;, &#39;0&#39;, 1, 2),
-)
-
-
-class Validator:
-    &#34;&#34;&#34;
-    Responsible for validation of data.
-
-    ...
-
-    Attributes
-    ----------
-    is_correct : bool
-        information about validation process
-    numeric_fields : tuple
-        names of numeric fields
-
-    Methods
-    -------
-    warn(message, field=None)
-        displays error window with passed message and clears set field, if None clears whole form
-
-    Examples
-    --------
-    Check each value of all necessary fields in dictionary:
-    &gt;&gt;&gt; values = {
-    ...     &#34;Title&#34;: &#34;From Russia, with Love&#34;,
-    ...     &#34;Author&#34;: &#34;Ian Fleming&#34;,
-    ...     &#34;Type&#34;: &#34;Thriller&#34;,
-    ...     &#34;Publisher&#34;: &#34;Thomas and Mercer&#34;,
-    ...     &#34;ISBN&#34;: &#34;9781612185477&#34;,
-    ...     &#34;Release&#34;: &#34;2012&#34;,
-    ...     &#34;Language&#34;: &#34;EN&#34;,
-    ...     &#34;Pages&#34;: &#34;181&#34;,
-    ...     &#34;Quantity&#34;: &#34;10&#34;,
-    ...     &#34;Price&#34;: &#34;125.5&#34;,
-    ...     &#34;Discount&#34;: &#34;0&#34;
-    ... }
-    &gt;&gt;&gt; validator = Validator(self.show_error)
-    &gt;&gt;&gt; validtor.process(values)
-    &gt;&gt;&gt; validator.is_correct
-    True
-
-    Check single field:
-    &gt;&gt;&gt; validator = Validator(self.show_error)
-    &gt;&gt;&gt; validtor.check_isbn(&#34;9781612185477&#34;)
-    &gt;&gt;&gt; validator.is_correct
-    True
-    &#34;&#34;&#34;
-
-    def __init__(self, show_error):
-        &#34;&#34;&#34;
-        Parameters
-        ----------
-        show_error : method
-            method from Gui to display error and clear proper field
-        &#34;&#34;&#34;
-
-        self.is_correct = True
-        self.numeric_fields = (&#39;Pages&#39;, &#39;Quantity&#39;, &#39;Price&#39;, &#39;Discount&#39;)
-        self.warn = show_error
-
-    def process(self, data):
-        &#34;&#34;&#34;Checks fields from dictionary with data.
-
-        Parameters
-        ----------
-        data : dict
-            contains all keys necessary in database record and their values to check
-        &#34;&#34;&#34;
-
-        for record in VALUES:
-            self.check_length(record, data[record.name])
-        for key in self.numeric_fields:
-            self.check_number(data[key], key)
-        self.check_isbn(data[&#39;ISBN&#39;])
-        self.check_release(data[&#39;Release&#39;])
-
-    def check_release(self, year):
-        &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
-
-        Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
-        to False and displays error.
-
-        Parameters
-        ----------
-        year : str
-            string to check if it is between accepted values
-        &#34;&#34;&#34;
-
-        min = 1800
-        max = datetime.now().year + 1
-        try:
-            if min &lt;= int(year) &lt;= max: return
-        except ValueError:
-            pass
-        self.is_correct = False
-        self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)
-
-    def check_isbn(self, number):
-        &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
-
-        Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
-        checksum. If conditions are not met sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        number : str
-            string to check if it is correct ISBN-13 number
-        &#34;&#34;&#34;
-
-        if number.isdigit() and len(number) == 13:
-            n = [int(x) for x in number]
-            control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
-                    n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
-            if n[12] == control: return
-        self.is_correct = False
-        self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)
-
-    def check_number(self, value, field):
-        &#34;&#34;&#34;Checks if value for passed field is correct.
-
-        Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        value : str
-            string to check if it can be converted to float
-        field : str
-            name of field which is checked
-        &#34;&#34;&#34;
-
-        try:
-            float(value)
-        except ValueError:
-            self.is_correct = False
-            self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)
-
-    def check_length(self, record, value):
-        &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
-
-        If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        record : Record
-            class representing record with its name, example value and min, max accepted length
-        value : str
-            string to check if it has proper length
-        &#34;&#34;&#34;
-
-        is_correct = record.is_length_correct(value)
-        if not is_correct:
-            text = self.get_length_text(record.range_min, record.range_max)
-            self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
-            self.is_correct = False
-
-    @staticmethod
-    def get_length_text(min: int, max: int) -&gt; str:
-        &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
-
-        if min == max:
-            return f&#39;exact {min}&#39;
-        return f&#39;between {min} and {max}&#39;</code></pre>
+        for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+            try:
+                self[field] = int(self[field])
+            except (KeyError, ValueError):
+                pass</code></pre>
 </details>
-</section>
-<section>
 </section>
 <section>
 </section>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="bookmeister.record.cast_values"><code class="name flex">
-<span>def <span class="ident">cast_values</span></span>(<span>values)</span>
+<dt id="bookmeister.record.check_isbn"><code class="name flex">
+<span>def <span class="ident">check_isbn</span></span>(<span>number)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Casts values to proper type.</p>
+<section class="desc"><p>Check if ISBN-13 number is correct.</p>
+<p>Check if passed value is digit and its length is equal to 13. Then run
+calculations to compare result with checksum. If conditions are not met
+raise ValueError.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary with names of fields and their values, it can contain only one position or each of them</dd>
+<dt><strong><code>number</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is correct ISBN-13 number</dd>
 </dl>
-<h2 id="examples">Examples</h2>
-<pre><code>&gt;&gt;&gt; query = {"Pages": "50", "Price": "12.95"}
-&gt;&gt;&gt; cast_values(query)
-&gt;&gt;&gt; query
-{"Pages": 50, "Price": 12.95}
-</code></pre></section>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>when value for ISBN-13 is not correct</dd>
+</dl></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L75-L98" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def cast_values(values):
-    &#34;&#34;&#34;Casts values to proper type.
+<pre><code class="python">def check_isbn(number):
+    &#34;&#34;&#34;Check if ISBN-13 number is correct.
+
+    Check if passed value is digit and its length is equal to 13. Then run
+    calculations to compare result with checksum. If conditions are not met
+    raise ValueError.
 
     Parameters
     ----------
-    values : dict
-        dictionary with names of fields and their values, it can contain only one position or each of them
+    number : str
+        string to check if it is correct ISBN-13 number
 
-    Examples
-    --------
-    &gt;&gt;&gt; query = {&#34;Pages&#34;: &#34;50&#34;, &#34;Price&#34;: &#34;12.95&#34;}
-    &gt;&gt;&gt; cast_values(query)
-    &gt;&gt;&gt; query
-    {&#34;Pages&#34;: 50, &#34;Price&#34;: 12.95}
+    Raises
+    ------
+    ValueError
+        when value for ISBN-13 is not correct
     &#34;&#34;&#34;
+    if number.isdigit() and len(number) == 13:
+        n = [int(char) for char in number]
+        control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
+                n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
+        if n[12] == control:
+            return
+    raise ValueError(&#39;Number must be valid ISBN-13 code.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.check_lang_code"><code class="name flex">
+<span>def <span class="ident">check_lang_code</span></span>(<span>code)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if language code has two letters.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>code</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is correct language code</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>when value for language code is not correct</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L101-L116" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def check_lang_code(code):
+    &#34;&#34;&#34;Check if language code has two letters.
 
+    Parameters
+    ----------
+    code : str
+        string to check if it is correct language code
+
+    Raises
+    ------
+    ValueError
+        when value for language code is not correct
+    &#34;&#34;&#34;
+    if not code.isalpha() or not len(code) == 2:
+        raise ValueError(&#39;Language code must be two characters. &#39;
+                         &#39;Check ISO 639-1 for more details.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.check_length"><code class="name flex">
+<span>def <span class="ident">check_length</span></span>(<span>text, minimum=1, maximum=100)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if length of passed text is between set values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if its length is in set range</dd>
+<dt><strong><code>minimum</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>minimum value for text length, default is 1</dd>
+<dt><strong><code>maximum</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>maximum value for text length, default is 100</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>when text length is not in range</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L27-L46" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def check_length(text, minimum=1, maximum=100):
+    &#34;&#34;&#34;Check if length of passed text is between set values.
+
+    Parameters
+    ----------
+    text : str
+        string to check if its length is in set range
+    minimum : int, optional
+        minimum value for text length, default is 1
+    maximum : int, optional
+        maximum value for text length, default is 100
+
+    Raises
+    ------
+    ValueError
+        when text length is not in range
+    &#34;&#34;&#34;
+    if not minimum &lt;= len(text) &lt;= maximum:
+        raise ValueError(f&#39;Text length must be {minimum} to {maximum} &#39;
+                         &#39;characters.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.check_number"><code class="name flex">
+<span>def <span class="ident">check_number</span></span>(<span>value, minimum=0, maximum=9999)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if passed string is integer between set values.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is integer in set range</dd>
+<dt><strong><code>minimum</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>minimum value for accepted number, default is 0</dd>
+<dt><strong><code>maximum</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>maximum value for accepted number, default is 9999</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>when value cannot be converted to <code>int</code> or is not in range</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L49-L72" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def check_number(value, minimum=0, maximum=9999):
+    &#34;&#34;&#34;Check if passed string is integer between set values.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is integer in set range
+    minimum : int, optional
+        minimum value for accepted number, default is 0
+    maximum : int, optional
+        maximum value for accepted number, default is 9999
+
+    Raises
+    ------
+    ValueError
+        when value cannot be converted to `int` or is not in range
+    &#34;&#34;&#34;
     try:
-        values[&#39;Price&#39;] = float(values[&#39;Price&#39;])
-    except (KeyError, ValueError):
-        pass
+        number = int(value)
+    except ValueError:
+        raise ValueError(&#39;It must be integer.&#39;)
 
-    for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
-        try:
-            values[field] = int(values[field])
-        except (KeyError, ValueError):
-            pass</code></pre>
+    if not minimum &lt;= number &lt;= maximum:
+        raise ValueError(f&#39;Number must be in range {minimum} to {maximum}.&#39;)</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.record.check_price"><code class="name flex">
+<span>def <span class="ident">check_price</span></span>(<span>value)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if passed string is price.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
+<dd>string to check if it is int or float number with proper precision</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>when value contains letters or has too many digits after dot</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L119-L142" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def check_price(value):
+    &#34;&#34;&#34;Check if passed string is price.
+
+    Parameters
+    ----------
+    value : str
+        string to check if it is int or float number with proper precision
+
+    Raises
+    ------
+    ValueError
+        when value contains letters or has too many digits after dot
+    &#34;&#34;&#34;
+    price = value.split(&#39;.&#39;)
+    try:
+        if len(price) &gt; 2:
+            raise ValueError
+        check_number(price[0])
+        check_number(price[1], 0, 99)
+    except IndexError:
+        pass
+    except ValueError:
+        raise ValueError(&#39;Price must be a number with maximum two digits after&#39;
+                         &#39; dot, e.g. &#34;125.75&#34;.&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -355,498 +470,120 @@ class Validator:
 <dl>
 <dt id="bookmeister.record.Record"><code class="flex name class">
 <span>class <span class="ident">Record</span></span>
-<span>(</span><span>name, value, range_min, range_max)</span>
+<span>(</span><span>...)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Used to represent field stored in database. Covers key name, example value, accepted field min and max length.</p></section>
+<section class="desc"><p>Create customized dictionary.</p>
+<p>It validates new elements if their keys are stored in <code>FIELDS</code>. Method
+<code>check</code> binds proper function needed for validation. It extends <code>dict</code>.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L145-L187" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">class Record:
-    &#34;&#34;&#34;Used to represent field stored in database. Covers key name, example value, accepted field min and max length.&#34;&#34;&#34;
+<pre><code class="python">class Record(dict):
+    &#34;&#34;&#34;
+    Create customized dictionary.
 
-    name: str
-    value: str
-    range_min: int
-    range_max: int
-
-    def is_length_correct(self, value):
-        &#34;&#34;&#34;Specifies if value has acceptable length.
-
-        Parameters
-        ----------
-        value : str
-            text value which length will be checked
-
-        Returns
-        -------
-        bool
-            True if value length is between `range_min` and `range_max` of `Record` else False
-        &#34;&#34;&#34;
-
-        return self.range_min &lt;= len(value) &lt;= self.range_max</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="bookmeister.record.Record.is_length_correct"><code class="name flex">
-<span>def <span class="ident">is_length_correct</span></span>(<span>self, value)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Specifies if value has acceptable length.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
-<dd>text value which length will be checked</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bool</code></dt>
-<dd>True if value length is between <code>range_min</code> and <code>range_max</code> of <a title="bookmeister.record.Record" href="#bookmeister.record.Record"><code>Record</code></a> else False</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def is_length_correct(self, value):
-    &#34;&#34;&#34;Specifies if value has acceptable length.
-
-    Parameters
-    ----------
-    value : str
-        text value which length will be checked
-
-    Returns
-    -------
-    bool
-        True if value length is between `range_min` and `range_max` of `Record` else False
+    It validates new elements if their keys are stored in `FIELDS`. Method
+    `check` binds proper function needed for validation. It extends `dict`.
     &#34;&#34;&#34;
 
-    return self.range_min &lt;= len(value) &lt;= self.range_max</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="bookmeister.record.Validator"><code class="flex name class">
-<span>class <span class="ident">Validator</span></span>
-<span>(</span><span>show_error)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Responsible for validation of data.</p>
-<p>&hellip;</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>is_correct</code></strong> :&ensp;<code>bool</code></dt>
-<dd>information about validation process</dd>
-<dt><strong><code>numeric_fields</code></strong> :&ensp;<code>tuple</code></dt>
-<dd>names of numeric fields</dd>
-</dl>
-<h2 id="methods">Methods</h2>
-<p>warn(message, field=None)
-displays error window with passed message and clears set field, if None clears whole form</p>
-<h2 id="examples">Examples</h2>
-<p>Check each value of all necessary fields in dictionary:</p>
-<pre><code>&gt;&gt;&gt; values = {
-...     "Title": "From Russia, with Love",
-...     "Author": "Ian Fleming",
-...     "Type": "Thriller",
-...     "Publisher": "Thomas and Mercer",
-...     "ISBN": "9781612185477",
-...     "Release": "2012",
-...     "Language": "EN",
-...     "Pages": "181",
-...     "Quantity": "10",
-...     "Price": "125.5",
-...     "Discount": "0"
-... }
-&gt;&gt;&gt; validator = Validator(self.show_error)
-&gt;&gt;&gt; validtor.process(values)
-&gt;&gt;&gt; validator.is_correct
-**`True`**
-</code></pre>
-<dl>
-<dd>&nbsp;</dd>
-</dl>
-<p>Check single field:</p>
-<pre><code>&gt;&gt;&gt; validator = Validator(self.show_error)
-&gt;&gt;&gt; validtor.check_isbn("9781612185477")
-&gt;&gt;&gt; validator.is_correct
-**`True`**
-</code></pre>
-<dl>
-<dd>&nbsp;</dd>
-</dl>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>show_error</code></strong> :&ensp;<code>method</code></dt>
-<dd>method from Gui to display error and clear proper field</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Validator:
-    &#34;&#34;&#34;
-    Responsible for validation of data.
-
-    ...
-
-    Attributes
-    ----------
-    is_correct : bool
-        information about validation process
-    numeric_fields : tuple
-        names of numeric fields
-
-    Methods
-    -------
-    warn(message, field=None)
-        displays error window with passed message and clears set field, if None clears whole form
-
-    Examples
-    --------
-    Check each value of all necessary fields in dictionary:
-    &gt;&gt;&gt; values = {
-    ...     &#34;Title&#34;: &#34;From Russia, with Love&#34;,
-    ...     &#34;Author&#34;: &#34;Ian Fleming&#34;,
-    ...     &#34;Type&#34;: &#34;Thriller&#34;,
-    ...     &#34;Publisher&#34;: &#34;Thomas and Mercer&#34;,
-    ...     &#34;ISBN&#34;: &#34;9781612185477&#34;,
-    ...     &#34;Release&#34;: &#34;2012&#34;,
-    ...     &#34;Language&#34;: &#34;EN&#34;,
-    ...     &#34;Pages&#34;: &#34;181&#34;,
-    ...     &#34;Quantity&#34;: &#34;10&#34;,
-    ...     &#34;Price&#34;: &#34;125.5&#34;,
-    ...     &#34;Discount&#34;: &#34;0&#34;
-    ... }
-    &gt;&gt;&gt; validator = Validator(self.show_error)
-    &gt;&gt;&gt; validtor.process(values)
-    &gt;&gt;&gt; validator.is_correct
-    True
-
-    Check single field:
-    &gt;&gt;&gt; validator = Validator(self.show_error)
-    &gt;&gt;&gt; validtor.check_isbn(&#34;9781612185477&#34;)
-    &gt;&gt;&gt; validator.is_correct
-    True
-    &#34;&#34;&#34;
-
-    def __init__(self, show_error):
-        &#34;&#34;&#34;
-        Parameters
-        ----------
-        show_error : method
-            method from Gui to display error and clear proper field
-        &#34;&#34;&#34;
-
-        self.is_correct = True
-        self.numeric_fields = (&#39;Pages&#39;, &#39;Quantity&#39;, &#39;Price&#39;, &#39;Discount&#39;)
-        self.warn = show_error
-
-    def process(self, data):
-        &#34;&#34;&#34;Checks fields from dictionary with data.
-
-        Parameters
-        ----------
-        data : dict
-            contains all keys necessary in database record and their values to check
-        &#34;&#34;&#34;
-
-        for record in VALUES:
-            self.check_length(record, data[record.name])
-        for key in self.numeric_fields:
-            self.check_number(data[key], key)
-        self.check_isbn(data[&#39;ISBN&#39;])
-        self.check_release(data[&#39;Release&#39;])
-
-    def check_release(self, year):
-        &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
-
-        Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
-        to False and displays error.
-
-        Parameters
-        ----------
-        year : str
-            string to check if it is between accepted values
-        &#34;&#34;&#34;
-
-        min = 1800
-        max = datetime.now().year + 1
-        try:
-            if min &lt;= int(year) &lt;= max: return
-        except ValueError:
-            pass
-        self.is_correct = False
-        self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)
-
-    def check_isbn(self, number):
-        &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
-
-        Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
-        checksum. If conditions are not met sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        number : str
-            string to check if it is correct ISBN-13 number
-        &#34;&#34;&#34;
-
-        if number.isdigit() and len(number) == 13:
-            n = [int(x) for x in number]
-            control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
-                    n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
-            if n[12] == control: return
-        self.is_correct = False
-        self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)
-
-    def check_number(self, value, field):
-        &#34;&#34;&#34;Checks if value for passed field is correct.
-
-        Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        value : str
-            string to check if it can be converted to float
-        field : str
-            name of field which is checked
-        &#34;&#34;&#34;
-
-        try:
-            float(value)
-        except ValueError:
-            self.is_correct = False
-            self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)
-
-    def check_length(self, record, value):
-        &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
-
-        If not sets `self.is_correct` to False and displays error.
-
-        Parameters
-        ----------
-        record : Record
-            class representing record with its name, example value and min, max accepted length
-        value : str
-            string to check if it has proper length
-        &#34;&#34;&#34;
-
-        is_correct = record.is_length_correct(value)
-        if not is_correct:
-            text = self.get_length_text(record.range_min, record.range_max)
-            self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
-            self.is_correct = False
+    def __setitem__(self, key, value):
+        &#34;&#34;&#34;Extend `__setitem__` method by value check for `FIELDS` elements.&#34;&#34;&#34;
+        if key in FIELDS and isinstance(value, str):
+            self.check(key, value)
+        super(Record, self).__setitem__(key, value)
 
     @staticmethod
-    def get_length_text(min: int, max: int) -&gt; str:
-        &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
+    def check(key, value):
+        &#34;&#34;&#34;Map functions which check field value with expected key.&#34;&#34;&#34;
+        if key in (&#39;Title&#39;, &#39;Author&#39;, &#39;Type&#39;, &#39;Publisher&#39;):
+            check_length(value)
+        elif key in (&#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+            args = []
+            if key == &#39;Release&#39;:
+                args.extend((1800, datetime.now().year + 1))
+            if key == &#39;Discount&#39;:
+                args.extend((0, 99))
+            check_number(value, *args)
+        else:
+            {&#39;ISBN&#39;: check_isbn,
+             &#39;Language&#39;: check_lang_code,
+             &#39;Price&#39;: check_price}[key](value)
 
-        if min == max:
-            return f&#39;exact {min}&#39;
-        return f&#39;between {min} and {max}&#39;</code></pre>
+    def cast(self):
+        &#34;&#34;&#34;Cast `Record` values to type expected in database.&#34;&#34;&#34;
+        try:
+            self[&#39;Price&#39;] = float(self[&#39;Price&#39;])
+        except (KeyError, ValueError):
+            pass
+
+        for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+            try:
+                self[field] = int(self[field])
+            except (KeyError, ValueError):
+                pass</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="bookmeister.record.Validator.get_length_text"><code class="name flex">
-<span>def <span class="ident">get_length_text</span></span>(<span>min, max)</span>
+<dt id="bookmeister.record.Record.check"><code class="name flex">
+<span>def <span class="ident">check</span></span>(<span>key, value)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns text according to min and max value.</p></section>
+<section class="desc"><p>Map functions which check field value with expected key.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L159-L174" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">@staticmethod
-def get_length_text(min: int, max: int) -&gt; str:
-    &#34;&#34;&#34;Returns text according to min and max value.&#34;&#34;&#34;
-
-    if min == max:
-        return f&#39;exact {min}&#39;
-    return f&#39;between {min} and {max}&#39;</code></pre>
+def check(key, value):
+    &#34;&#34;&#34;Map functions which check field value with expected key.&#34;&#34;&#34;
+    if key in (&#39;Title&#39;, &#39;Author&#39;, &#39;Type&#39;, &#39;Publisher&#39;):
+        check_length(value)
+    elif key in (&#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+        args = []
+        if key == &#39;Release&#39;:
+            args.extend((1800, datetime.now().year + 1))
+        if key == &#39;Discount&#39;:
+            args.extend((0, 99))
+        check_number(value, *args)
+    else:
+        {&#39;ISBN&#39;: check_isbn,
+         &#39;Language&#39;: check_lang_code,
+         &#39;Price&#39;: check_price}[key](value)</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="bookmeister.record.Validator.check_isbn"><code class="name flex">
-<span>def <span class="ident">check_isbn</span></span>(<span>self, number)</span>
+<dt id="bookmeister.record.Record.cast"><code class="name flex">
+<span>def <span class="ident">cast</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks if value for field "ISBN" is correct.</p>
-<p>Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
-checksum. If conditions are not met sets <code>self.is_correct</code> to False and displays error.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>number</code></strong> :&ensp;<code>str</code></dt>
-<dd>string to check if it is correct ISBN-13 number</dd>
-</dl></section>
+<section class="desc"><p>Cast <code><a title="bookmeister.record.Record" href="#bookmeister.record.Record">Record</a></code> values to type expected in database.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/record.py#L176-L187" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def check_isbn(self, number):
-    &#34;&#34;&#34;Checks if value for field &#34;ISBN&#34; is correct.
-
-    Checks if passed value is digit and its length is equal to 13. Then runs calculations to compare result with
-    checksum. If conditions are not met sets `self.is_correct` to False and displays error.
-
-    Parameters
-    ----------
-    number : str
-        string to check if it is correct ISBN-13 number
-    &#34;&#34;&#34;
-
-    if number.isdigit() and len(number) == 13:
-        n = [int(x) for x in number]
-        control = (10 - ((n[0] + n[2] + n[4] + n[6] + n[8] + n[10] + 3 * (
-                n[1] + n[3] + n[5] + n[7] + n[9] + n[11])) % 10)) % 10
-        if n[12] == control: return
-    self.is_correct = False
-    self.warn(f&#39;Wrong value for ISBN-13 number.&#39;, &#39;ISBN&#39;)</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.record.Validator.check_length"><code class="name flex">
-<span>def <span class="ident">check_length</span></span>(<span>self, record, value)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Checks if passed value has acceptable length for set record.</p>
-<p>If not sets <code>self.is_correct</code> to False and displays error.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>record</code></strong> :&ensp;<a title="bookmeister.record.Record" href="#bookmeister.record.Record"><code>Record</code></a></dt>
-<dd>class representing record with its name, example value and min, max accepted length</dd>
-<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
-<dd>string to check if it has proper length</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def check_length(self, record, value):
-    &#34;&#34;&#34;Checks if passed value has acceptable length for set record.
-
-    If not sets `self.is_correct` to False and displays error.
-
-    Parameters
-    ----------
-    record : Record
-        class representing record with its name, example value and min, max accepted length
-    value : str
-        string to check if it has proper length
-    &#34;&#34;&#34;
-
-    is_correct = record.is_length_correct(value)
-    if not is_correct:
-        text = self.get_length_text(record.range_min, record.range_max)
-        self.warn(f&#39;Length for field &#34;{record.name}&#34; must be {text} signs, e.g. {record.value}&#39;, record.name)
-        self.is_correct = False</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.record.Validator.check_number"><code class="name flex">
-<span>def <span class="ident">check_number</span></span>(<span>self, value, field)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Checks if value for passed field is correct.</p>
-<p>Checks if value can be converted to float. If not sets <code>self.is_correct</code> to False and displays error.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>value</code></strong> :&ensp;<code>str</code></dt>
-<dd>string to check if it can be converted to float</dd>
-<dt><strong><code>field</code></strong> :&ensp;<code>str</code></dt>
-<dd>name of field which is checked</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def check_number(self, value, field):
-    &#34;&#34;&#34;Checks if value for passed field is correct.
-
-    Checks if value can be converted to float. If not sets `self.is_correct` to False and displays error.
-
-    Parameters
-    ----------
-    value : str
-        string to check if it can be converted to float
-    field : str
-        name of field which is checked
-    &#34;&#34;&#34;
-
+<pre><code class="python">def cast(self):
+    &#34;&#34;&#34;Cast `Record` values to type expected in database.&#34;&#34;&#34;
     try:
-        float(value)
-    except ValueError:
-        self.is_correct = False
-        self.warn(f&#39;Field &#34;{field}&#34; must be a number.&#39;, field)</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.record.Validator.check_release"><code class="name flex">
-<span>def <span class="ident">check_release</span></span>(<span>self, year)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Checks if value for field "Release" is correct.</p>
-<p>Tries to convert passed value to int and checks if it is between accepted values. If not sets <code>self.is_correct</code>
-to False and displays error.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>year</code></strong> :&ensp;<code>str</code></dt>
-<dd>string to check if it is between accepted values</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def check_release(self, year):
-    &#34;&#34;&#34;Checks if value for field &#34;Release&#34; is correct.
-
-    Tries to convert passed value to int and checks if it is between accepted values. If not sets `self.is_correct`
-    to False and displays error.
-
-    Parameters
-    ----------
-    year : str
-        string to check if it is between accepted values
-    &#34;&#34;&#34;
-
-    min = 1800
-    max = datetime.now().year + 1
-    try:
-        if min &lt;= int(year) &lt;= max: return
-    except ValueError:
+        self[&#39;Price&#39;] = float(self[&#39;Price&#39;])
+    except (KeyError, ValueError):
         pass
-    self.is_correct = False
-    self.warn(f&#39;Field &#34;Release&#34; must be a number between {min} and {max}.&#39;, &#39;Release&#39;)</code></pre>
-</details>
-</dd>
-<dt id="bookmeister.record.Validator.process"><code class="name flex">
-<span>def <span class="ident">process</span></span>(<span>self, data)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>Checks fields from dictionary with data.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
-<dd>contains all keys necessary in database record and their values to check</dd>
-</dl></section>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def process(self, data):
-    &#34;&#34;&#34;Checks fields from dictionary with data.
 
-    Parameters
-    ----------
-    data : dict
-        contains all keys necessary in database record and their values to check
-    &#34;&#34;&#34;
-
-    for record in VALUES:
-        self.check_length(record, data[record.name])
-    for key in self.numeric_fields:
-        self.check_number(data[key], key)
-    self.check_isbn(data[&#39;ISBN&#39;])
-    self.check_release(data[&#39;Release&#39;])</code></pre>
+    for field in (&#39;ISBN&#39;, &#39;Release&#39;, &#39;Pages&#39;, &#39;Quantity&#39;, &#39;Discount&#39;):
+        try:
+            self[field] = int(self[field])
+        except (KeyError, ValueError):
+            pass</code></pre>
 </details>
 </dd>
 </dl>
@@ -855,6 +592,7 @@ to False and displays error.</p>
 </section>
 </article>
 <nav id="sidebar">
+<header><img src="https://raw.githubusercontent.com/ethru/pdoc3-mdnotes/develop/pdoc3_mdnotes/icons/mdnotes.png" alt=""></header>
 <h1>Index</h1>
 <div class="toc">
 <ul>
@@ -870,7 +608,11 @@ to False and displays error.</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="bookmeister.record.cast_values" href="#bookmeister.record.cast_values">cast_values</a></code></li>
+<li><code><a title="bookmeister.record.check_isbn" href="#bookmeister.record.check_isbn">check_isbn</a></code></li>
+<li><code><a title="bookmeister.record.check_lang_code" href="#bookmeister.record.check_lang_code">check_lang_code</a></code></li>
+<li><code><a title="bookmeister.record.check_length" href="#bookmeister.record.check_length">check_length</a></code></li>
+<li><code><a title="bookmeister.record.check_number" href="#bookmeister.record.check_number">check_number</a></code></li>
+<li><code><a title="bookmeister.record.check_price" href="#bookmeister.record.check_price">check_price</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -878,18 +620,8 @@ to False and displays error.</p>
 <li>
 <h4><code><a title="bookmeister.record.Record" href="#bookmeister.record.Record">Record</a></code></h4>
 <ul class="">
-<li><code><a title="bookmeister.record.Record.is_length_correct" href="#bookmeister.record.Record.is_length_correct">is_length_correct</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="bookmeister.record.Validator" href="#bookmeister.record.Validator">Validator</a></code></h4>
-<ul class="two-column">
-<li><code><a title="bookmeister.record.Validator.check_isbn" href="#bookmeister.record.Validator.check_isbn">check_isbn</a></code></li>
-<li><code><a title="bookmeister.record.Validator.check_length" href="#bookmeister.record.Validator.check_length">check_length</a></code></li>
-<li><code><a title="bookmeister.record.Validator.check_number" href="#bookmeister.record.Validator.check_number">check_number</a></code></li>
-<li><code><a title="bookmeister.record.Validator.check_release" href="#bookmeister.record.Validator.check_release">check_release</a></code></li>
-<li><code><a title="bookmeister.record.Validator.get_length_text" href="#bookmeister.record.Validator.get_length_text">get_length_text</a></code></li>
-<li><code><a title="bookmeister.record.Validator.process" href="#bookmeister.record.Validator.process">process</a></code></li>
+<li><code><a title="bookmeister.record.Record.cast" href="#bookmeister.record.Record.cast">cast</a></code></li>
+<li><code><a title="bookmeister.record.Record.check" href="#bookmeister.record.Record.check">check</a></code></li>
 </ul>
 </li>
 </ul>
@@ -898,7 +630,7 @@ to False and displays error.</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.7.2" />
+<meta name="generator" content="pdoc 0.8.1" />
 <title>bookmeister.connection API documentation</title>
 <meta name="description" content="Connection …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
@@ -21,10 +21,11 @@
 </header>
 <section id="section-intro">
 <h4 id="connection">Connection</h4>
-<p>Module with <a title="bookmeister.connection.Database" href="#bookmeister.connection.Database"><code>Database</code></a> class which gathers methods necessary to communicate with database REST API. It allows to add,
-search, update or delete records. To perform those operations <code>requests</code> module is used. Every method confirms its
-result by returning True or expected data. In case of error False or None is returned. Values received or sent to
-database are converted with <code>json</code> module.</p>
+<p>Module with <code><a title="bookmeister.connection.Database" href="#bookmeister.connection.Database">Database</a></code> class which gathers methods necessary to communicate
+with database REST API. It allows to add, search, update or delete records. To
+perform those operations <code>requests</code> module is used. Every method confirms its
+result by returning True or expected data. In case of error False or None is
+returned. Values received or sent to database are converted with <code>json</code> module.</p>
 <h4 id="license">License</h4>
 <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -36,13 +37,15 @@ SOFTWARE.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L0-L176" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;#### Connection
 
-Module with `Database` class which gathers methods necessary to communicate with database REST API. It allows to add,
-search, update or delete records. To perform those operations `requests` module is used. Every method confirms its
-result by returning True or expected data. In case of error False or None is returned. Values received or sent to
-database are converted with `json` module.
+Module with `Database` class which gathers methods necessary to communicate
+with database REST API. It allows to add, search, update or delete records. To
+perform those operations `requests` module is used. Every method confirms its
+result by returning True or expected data. In case of error False or None is
+returned. Values received or sent to database are converted with `json` module.
 
 
 #### License
@@ -70,20 +73,24 @@ class Database:
     ----------
     url : str
         database address
+    collection : str
+        name of collection in database
     headers : dict
         dictionary containing information send with request to database
     &#34;&#34;&#34;
 
     def __init__(self):
-        self.url = &#34;https://bookstore-5217.restdb.io/rest/books&#34;
+        &#34;&#34;&#34;Initialize basic settings needed for communication with database.&#34;&#34;&#34;
+        self.url = &#39;https://bookstore-5217.restdb.io&#39;
+        self.collection = &#39;/rest/books&#39;
         self.headers = {
-            &#39;content-type&#39;: &#34;application/json&#34;,
-            &#39;x-apikey&#39;: &#34;5e5f9cf028222370f14d4ece&#34;,
-            &#39;cache-control&#39;: &#34;no-cache&#34;
+            &#39;content-type&#39;: &#39;application/json&#39;,
+            &#39;x-apikey&#39;: &#39;5e5f9cf028222370f14d4ece&#39;,
+            &#39;cache-control&#39;: &#39;no-cache&#39;,
         }
 
     def add(self, values):
-        &#34;&#34;&#34;Sends values to database.
+        &#34;&#34;&#34;Send values to database.
 
         Parameters
         ----------
@@ -95,20 +102,25 @@ class Database:
         bool
             True when record added to database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;POST&#34;, self.url, data=dumps(values), headers=self.headers)
+            response = requests.request(
+                &#39;POST&#39;,
+                self.url + self.collection,
+                data=dumps(values),
+                headers=self.headers
+            )
             return &#39;_id&#39; in response.text
         except requests.exceptions.ConnectionError:
             return False
 
     def search(self, parameters):
-        &#34;&#34;&#34;Search for records matching parameters in database.
+        &#34;&#34;&#34;Search for records matching `parameters` in database.
 
         Parameters
         ----------
         parameters : dict
-            dictionary with names of fields and values which will be searched in database
+            dictionary with names of fields and values which will be searched
+            in database
 
         Returns
         -------
@@ -117,20 +129,23 @@ class Database:
         None
             when connection error occurs
         &#34;&#34;&#34;
-
         query = f&#39;?q={dumps(parameters)}&#39;
         try:
-            response = requests.request(&#34;GET&#34;, self.url + query, headers=self.headers)
+            response = requests.request(
+                &#39;GET&#39;,
+                self.url + self.collection + query,
+                headers=self.headers
+            )
             return loads(response.text)
         except requests.exceptions.ConnectionError:
             return None
 
-    def delete(self, id):
-        &#34;&#34;&#34;Removes record from database.
+    def delete(self, record_id):
+        &#34;&#34;&#34;Remove record from database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to remove
 
         Returns
@@ -138,19 +153,22 @@ class Database:
         bool
             True when record removed from database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;DELETE&#34;, self.url + &#39;/&#39; + id, headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                &#39;DELETE&#39;,
+                self.url + self.collection + &#39;/&#39; + record_id,
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
             return False
 
-    def update(self, id, values):
-        &#34;&#34;&#34;Updates record in database.
+    def update(self, record_id, values):
+        &#34;&#34;&#34;Update record in database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to update
         values : dict
             dictionary with names of fields and values to change in database
@@ -160,15 +178,45 @@ class Database:
         bool
             True when record modified in database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;PATCH&#34;, self.url + &#39;/&#39; + id, data=dumps(values), headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                &#39;PATCH&#39;,
+                self.url + self.collection + &#39;/&#39; + record_id,
+                data=dumps(values),
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
-            return False</code></pre>
+            return False
+
+    def upload_image(self, path):
+        &#34;&#34;&#34;Upload image to database media archive.
+
+        Parameters
+        ----------
+        path : str
+            image path
+
+        Returns
+        -------
+        str
+            id of uploaded image
+        None
+            when connection error occurs or no id in response
+        &#34;&#34;&#34;
+        headers = self.headers.copy()
+        headers.pop(&#39;content-type&#39;, None)
+        try:
+            response = requests.request(
+                &#39;POST&#39;,
+                self.url + &#39;/media&#39;,
+                files={&#39;image&#39;: open(path, &#39;rb&#39;)},
+                headers=headers
+            )
+            return loads(response.text)[&#34;ids&#34;][0]
+        except (TypeError, KeyError, requests.exceptions.ConnectionError):
+            return None</code></pre>
 </details>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -187,12 +235,16 @@ class Database:
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
 <dd>database address</dd>
+<dt><strong><code>collection</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of collection in database</dd>
 <dt><strong><code>headers</code></strong> :&ensp;<code>dict</code></dt>
 <dd>dictionary containing information send with request to database</dd>
-</dl></section>
+</dl>
+<p>Initialize basic settings needed for communication with database.</p></section>
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L25-L177" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">class Database:
     &#34;&#34;&#34;
@@ -204,20 +256,24 @@ class Database:
     ----------
     url : str
         database address
+    collection : str
+        name of collection in database
     headers : dict
         dictionary containing information send with request to database
     &#34;&#34;&#34;
 
     def __init__(self):
-        self.url = &#34;https://bookstore-5217.restdb.io/rest/books&#34;
+        &#34;&#34;&#34;Initialize basic settings needed for communication with database.&#34;&#34;&#34;
+        self.url = &#39;https://bookstore-5217.restdb.io&#39;
+        self.collection = &#39;/rest/books&#39;
         self.headers = {
-            &#39;content-type&#39;: &#34;application/json&#34;,
-            &#39;x-apikey&#39;: &#34;5e5f9cf028222370f14d4ece&#34;,
-            &#39;cache-control&#39;: &#34;no-cache&#34;
+            &#39;content-type&#39;: &#39;application/json&#39;,
+            &#39;x-apikey&#39;: &#39;5e5f9cf028222370f14d4ece&#39;,
+            &#39;cache-control&#39;: &#39;no-cache&#39;,
         }
 
     def add(self, values):
-        &#34;&#34;&#34;Sends values to database.
+        &#34;&#34;&#34;Send values to database.
 
         Parameters
         ----------
@@ -229,20 +285,25 @@ class Database:
         bool
             True when record added to database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;POST&#34;, self.url, data=dumps(values), headers=self.headers)
+            response = requests.request(
+                &#39;POST&#39;,
+                self.url + self.collection,
+                data=dumps(values),
+                headers=self.headers
+            )
             return &#39;_id&#39; in response.text
         except requests.exceptions.ConnectionError:
             return False
 
     def search(self, parameters):
-        &#34;&#34;&#34;Search for records matching parameters in database.
+        &#34;&#34;&#34;Search for records matching `parameters` in database.
 
         Parameters
         ----------
         parameters : dict
-            dictionary with names of fields and values which will be searched in database
+            dictionary with names of fields and values which will be searched
+            in database
 
         Returns
         -------
@@ -251,20 +312,23 @@ class Database:
         None
             when connection error occurs
         &#34;&#34;&#34;
-
         query = f&#39;?q={dumps(parameters)}&#39;
         try:
-            response = requests.request(&#34;GET&#34;, self.url + query, headers=self.headers)
+            response = requests.request(
+                &#39;GET&#39;,
+                self.url + self.collection + query,
+                headers=self.headers
+            )
             return loads(response.text)
         except requests.exceptions.ConnectionError:
             return None
 
-    def delete(self, id):
-        &#34;&#34;&#34;Removes record from database.
+    def delete(self, record_id):
+        &#34;&#34;&#34;Remove record from database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to remove
 
         Returns
@@ -272,19 +336,22 @@ class Database:
         bool
             True when record removed from database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;DELETE&#34;, self.url + &#39;/&#39; + id, headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                &#39;DELETE&#39;,
+                self.url + self.collection + &#39;/&#39; + record_id,
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
             return False
 
-    def update(self, id, values):
-        &#34;&#34;&#34;Updates record in database.
+    def update(self, record_id, values):
+        &#34;&#34;&#34;Update record in database.
 
         Parameters
         ----------
-        id : str
+        record_id : str
             key of record to update
         values : dict
             dictionary with names of fields and values to change in database
@@ -294,12 +361,44 @@ class Database:
         bool
             True when record modified in database else False
         &#34;&#34;&#34;
-
         try:
-            response = requests.request(&#34;PATCH&#34;, self.url + &#39;/&#39; + id, data=dumps(values), headers=self.headers)
-            return id in response.text
+            response = requests.request(
+                &#39;PATCH&#39;,
+                self.url + self.collection + &#39;/&#39; + record_id,
+                data=dumps(values),
+                headers=self.headers
+            )
+            return record_id in response.text
         except requests.exceptions.ConnectionError:
-            return False</code></pre>
+            return False
+
+    def upload_image(self, path):
+        &#34;&#34;&#34;Upload image to database media archive.
+
+        Parameters
+        ----------
+        path : str
+            image path
+
+        Returns
+        -------
+        str
+            id of uploaded image
+        None
+            when connection error occurs or no id in response
+        &#34;&#34;&#34;
+        headers = self.headers.copy()
+        headers.pop(&#39;content-type&#39;, None)
+        try:
+            response = requests.request(
+                &#39;POST&#39;,
+                self.url + &#39;/media&#39;,
+                files={&#39;image&#39;: open(path, &#39;rb&#39;)},
+                headers=headers
+            )
+            return loads(response.text)[&#34;ids&#34;][0]
+        except (TypeError, KeyError, requests.exceptions.ConnectionError):
+            return None</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -307,7 +406,7 @@ class Database:
 <span>def <span class="ident">add</span></span>(<span>self, values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Sends values to database.</p>
+<section class="desc"><p>Send values to database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
@@ -321,9 +420,10 @@ class Database:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L51-L73" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def add(self, values):
-    &#34;&#34;&#34;Sends values to database.
+    &#34;&#34;&#34;Send values to database.
 
     Parameters
     ----------
@@ -335,22 +435,26 @@ class Database:
     bool
         True when record added to database else False
     &#34;&#34;&#34;
-
     try:
-        response = requests.request(&#34;POST&#34;, self.url, data=dumps(values), headers=self.headers)
+        response = requests.request(
+            &#39;POST&#39;,
+            self.url + self.collection,
+            data=dumps(values),
+            headers=self.headers
+        )
         return &#39;_id&#39; in response.text
     except requests.exceptions.ConnectionError:
         return False</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.connection.Database.delete"><code class="name flex">
-<span>def <span class="ident">delete</span></span>(<span>self, id)</span>
+<span>def <span class="ident">delete</span></span>(<span>self, record_id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Removes record from database.</p>
+<section class="desc"><p>Remove record from database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>record_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>key of record to remove</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -361,13 +465,14 @@ class Database:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L102-L123" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def delete(self, id):
-    &#34;&#34;&#34;Removes record from database.
+<pre><code class="python">def delete(self, record_id):
+    &#34;&#34;&#34;Remove record from database.
 
     Parameters
     ----------
-    id : str
+    record_id : str
         key of record to remove
 
     Returns
@@ -375,10 +480,13 @@ class Database:
     bool
         True when record removed from database else False
     &#34;&#34;&#34;
-
     try:
-        response = requests.request(&#34;DELETE&#34;, self.url + &#39;/&#39; + id, headers=self.headers)
-        return id in response.text
+        response = requests.request(
+            &#39;DELETE&#39;,
+            self.url + self.collection + &#39;/&#39; + record_id,
+            headers=self.headers
+        )
+        return record_id in response.text
     except requests.exceptions.ConnectionError:
         return False</code></pre>
 </details>
@@ -387,11 +495,12 @@ class Database:
 <span>def <span class="ident">search</span></span>(<span>self, parameters)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Search for records matching parameters in database.</p>
+<section class="desc"><p>Search for records matching <code>parameters</code> in database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>parameters</code></strong> :&ensp;<code>dict</code></dt>
-<dd>dictionary with names of fields and values which will be searched in database</dd>
+<dd>dictionary with names of fields and values which will be searched
+in database</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -403,14 +512,16 @@ class Database:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L75-L100" class="git-link">Browse git</a>
 </summary>
 <pre><code class="python">def search(self, parameters):
-    &#34;&#34;&#34;Search for records matching parameters in database.
+    &#34;&#34;&#34;Search for records matching `parameters` in database.
 
     Parameters
     ----------
     parameters : dict
-        dictionary with names of fields and values which will be searched in database
+        dictionary with names of fields and values which will be searched
+        in database
 
     Returns
     -------
@@ -419,23 +530,26 @@ class Database:
     None
         when connection error occurs
     &#34;&#34;&#34;
-
     query = f&#39;?q={dumps(parameters)}&#39;
     try:
-        response = requests.request(&#34;GET&#34;, self.url + query, headers=self.headers)
+        response = requests.request(
+            &#39;GET&#39;,
+            self.url + self.collection + query,
+            headers=self.headers
+        )
         return loads(response.text)
     except requests.exceptions.ConnectionError:
         return None</code></pre>
 </details>
 </dd>
 <dt id="bookmeister.connection.Database.update"><code class="name flex">
-<span>def <span class="ident">update</span></span>(<span>self, id, values)</span>
+<span>def <span class="ident">update</span></span>(<span>self, record_id, values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Updates record in database.</p>
+<section class="desc"><p>Update record in database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>record_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>key of record to update</dd>
 <dt><strong><code>values</code></strong> :&ensp;<code>dict</code></dt>
 <dd>dictionary with names of fields and values to change in database</dd>
@@ -448,13 +562,14 @@ class Database:
 <details class="source">
 <summary>
 <span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L125-L149" class="git-link">Browse git</a>
 </summary>
-<pre><code class="python">def update(self, id, values):
-    &#34;&#34;&#34;Updates record in database.
+<pre><code class="python">def update(self, record_id, values):
+    &#34;&#34;&#34;Update record in database.
 
     Parameters
     ----------
-    id : str
+    record_id : str
         key of record to update
     values : dict
         dictionary with names of fields and values to change in database
@@ -464,12 +579,67 @@ class Database:
     bool
         True when record modified in database else False
     &#34;&#34;&#34;
-
     try:
-        response = requests.request(&#34;PATCH&#34;, self.url + &#39;/&#39; + id, data=dumps(values), headers=self.headers)
-        return id in response.text
+        response = requests.request(
+            &#39;PATCH&#39;,
+            self.url + self.collection + &#39;/&#39; + record_id,
+            data=dumps(values),
+            headers=self.headers
+        )
+        return record_id in response.text
     except requests.exceptions.ConnectionError:
         return False</code></pre>
+</details>
+</dd>
+<dt id="bookmeister.connection.Database.upload_image"><code class="name flex">
+<span>def <span class="ident">upload_image</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Upload image to database media archive.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>image path</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>id of uploaded image</dd>
+<dt><code>None</code></dt>
+<dd>when connection error occurs or no id in response</dd>
+</dl></section>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+<a href="https://github.com/ethru/bookmeister/blob/a68bce5e5f41236525e9065b8c76a0e68186f1f9/bookmeister/connection.py#L151-L177" class="git-link">Browse git</a>
+</summary>
+<pre><code class="python">def upload_image(self, path):
+    &#34;&#34;&#34;Upload image to database media archive.
+
+    Parameters
+    ----------
+    path : str
+        image path
+
+    Returns
+    -------
+    str
+        id of uploaded image
+    None
+        when connection error occurs or no id in response
+    &#34;&#34;&#34;
+    headers = self.headers.copy()
+    headers.pop(&#39;content-type&#39;, None)
+    try:
+        response = requests.request(
+            &#39;POST&#39;,
+            self.url + &#39;/media&#39;,
+            files={&#39;image&#39;: open(path, &#39;rb&#39;)},
+            headers=headers
+        )
+        return loads(response.text)[&#34;ids&#34;][0]
+    except (TypeError, KeyError, requests.exceptions.ConnectionError):
+        return None</code></pre>
 </details>
 </dd>
 </dl>
@@ -478,6 +648,7 @@ class Database:
 </section>
 </article>
 <nav id="sidebar">
+<header><img src="https://raw.githubusercontent.com/ethru/pdoc3-mdnotes/develop/pdoc3_mdnotes/icons/mdnotes.png" alt=""></header>
 <h1>Index</h1>
 <div class="toc">
 <ul>
@@ -500,6 +671,7 @@ class Database:
 <li><code><a title="bookmeister.connection.Database.delete" href="#bookmeister.connection.Database.delete">delete</a></code></li>
 <li><code><a title="bookmeister.connection.Database.search" href="#bookmeister.connection.Database.search">search</a></code></li>
 <li><code><a title="bookmeister.connection.Database.update" href="#bookmeister.connection.Database.update">update</a></code></li>
+<li><code><a title="bookmeister.connection.Database.upload_image" href="#bookmeister.connection.Database.upload_image">upload_image</a></code></li>
 </ul>
 </li>
 </ul>
@@ -508,7 +680,7 @@ class Database:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
 <script>hljs.initHighlightingOnLoad()</script>
